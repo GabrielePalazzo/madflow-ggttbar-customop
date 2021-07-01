@@ -12,6 +12,9 @@ jobs:
       JOB_TYPE: BUILD
     steps:
       - uses: actions/checkout@v2
+      
+      - name: Install dependencies
+        run: python3 -m pip install --upgrade pip
 
       - name: Compile
         run: make
