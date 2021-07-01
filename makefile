@@ -12,7 +12,7 @@ GSRCS = $(wildcard gpu/*.cc)
 CUDASRC = $(wildcard gpu/*.cu.cc)
 SOURCES = $(filter-out $(CUDASRC), $(GSRCS))
 
-TARGET_LIB=zero_out.so
+TARGET_LIB=matrix.so
 TARGET_LIB_CUDA=kernel_example.so
 
 TARGETS=$(TARGET_LIB)

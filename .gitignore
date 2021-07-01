@@ -1,2 +1,3 @@
 *.so
-cpu/*.o
+cpu/matrix.o
+

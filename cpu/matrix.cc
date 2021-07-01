@@ -14,6 +14,10 @@ REGISTER_OP("Matrix")
       c->set_output(0, c->input(0));
       return Status::OK();
     });
+
+class Matrix {
+  void smatrix();
+};
     
 class MatrixOp : public OpKernel {
  public:
@@ -31,8 +35,13 @@ class MatrixOp : public OpKernel {
     auto output_flat = output_tensor->flat<double>();
 
     // Do some stuff here...
+    
+    std::cout << "Input: " << input << std::endl;
 
   }
 };
+
+void Matrix::smatrix() {
+}
 
 REGISTER_KERNEL_BUILDER(Name("Matrix").Device(DEVICE_CPU), MatrixOp);
