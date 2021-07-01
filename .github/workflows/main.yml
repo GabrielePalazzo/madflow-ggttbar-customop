@@ -1,0 +1,17 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-ubuntu:
+    name: Build ubuntu
+    runs-on: ubuntu-latest
+    env:
+      JOB_TYPE: BUILD
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Compile
+        run: make
