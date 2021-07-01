@@ -8,6 +8,10 @@ jobs:
   build-ubuntu:
     name: Build ubuntu
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8]
+        
     env:
       JOB_TYPE: BUILD
     steps:
