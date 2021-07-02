@@ -184,7 +184,7 @@ class Matrix_1_gg_ttx(object):
         for hel in self.helicities:
             ans += self.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11)
 
-        print("nevts, ans", nevts, ans)
+        print("nevts, ans", nevts, ans, ans/self.denominator, self.helicities)
         return ans/self.denominator
 
     @tf.function(input_signature=matrix_signature)
