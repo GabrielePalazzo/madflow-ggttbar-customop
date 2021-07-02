@@ -1,6 +1,7 @@
 #include "tensorflow/core/framework/op.h"
 #include "tensorflow/core/framework/op_kernel.h"
 #include "tensorflow/core/framework/shape_inference.h"
+#include "tensorflow/cc/ops/math_ops.h"
 
 #include <vector>
 
@@ -31,8 +32,8 @@ class Matrix {
   Tensor helicities;
   double denominator;
   
-  void smatrix(const Tensor* all_ps);
-  void matrix(const Tensor* all_ps, Tensor hel);
+  Tensor smatrix(const Tensor* all_ps);
+  Tensor matrix(const Tensor* all_ps, Tensor hel);
 };
     
 class MatrixOp : public OpKernel {
@@ -90,7 +91,7 @@ Matrix::Matrix() {
     denominator = 256;
 }
 
-void Matrix::smatrix(const Tensor* all_ps) {
+Tensor Matrix::smatrix(const Tensor* all_ps) {
     //std::cout << "all_ps: " << all_ps->flat<double>() << std::endl;
     //std::cout << "helicities: " << helicities.flat<double>() << std::endl;
     
@@ -100,7 +101,11 @@ void Matrix::smatrix(const Tensor* all_ps) {
     
     for (int i = 0; i < helicities.dim_size(0); i++) {
         Tensor hel = helicities.Slice(i, i+1);
+        //ans += matrix(all_ps, hel);
+        //ans = tensorflow::ops::Add(ans, matrix(all_ps, hel));
     }
+    return Tensor(); //dummy tensor
+    //return ans/denominator;
     /*
         nevts = tf.shape(all_ps, out_type=DTYPEINT)[0]
         ans = tf.zeros(nevts, dtype=DTYPE)
@@ -110,11 +115,13 @@ void Matrix::smatrix(const Tensor* all_ps) {
         return ans/self.denominator*/
 }
 
-void Matrix::matrix(const Tensor* all_ps, Tensor hel) {
+Tensor Matrix::matrix(const Tensor* all_ps, Tensor hel) {
     int ngraphs = 3;
     int nwavefuncs = 5;
     int ncolor = 2;
     double ZERO = 0.;
+    
+    return Tensor(); // dummy tensor
 }
 
 REGISTER_KERNEL_BUILDER(Name("Matrix").Device(DEVICE_CPU), MatrixOp);
