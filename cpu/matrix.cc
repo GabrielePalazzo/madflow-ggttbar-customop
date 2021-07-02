@@ -29,6 +29,7 @@ class Matrix {
   //initial_states = [[21, 21]]
   bool mirror_initial_states;
   Tensor helicities;
+  double denominator;
   
   void smatrix(const Tensor* all_ps);
   void matrix(const Tensor* all_ps, Tensor hel);
@@ -78,7 +79,7 @@ Matrix::Matrix() {
         1,1,1,-1};
     helicities = Tensor(DT_DOUBLE, TensorShape({16, 4}));
     
-    for(int i = 0; i < 4 * 16; i++)
+    for (int i = 0; i < 4 * 16; i++)
         helicities.flat<double>()(i) = hel[i];
     
     nexternal = 4;
@@ -86,17 +87,34 @@ Matrix::Matrix() {
     ncomb = 16;
     //initial_states = [[21, 21]]
     mirror_initial_states = false;
+    denominator = 256;
 }
 
 void Matrix::smatrix(const Tensor* all_ps) {
-    std::cout << "all_ps: " << all_ps->flat<double>() << std::endl;
+    //std::cout << "all_ps: " << all_ps->flat<double>() << std::endl;
     //std::cout << "helicities: " << helicities.flat<double>() << std::endl;
+    
+    TensorShape nevts = all_ps->shape();
+    std::cout << "nevts: " << nevts << std::endl;
+    Tensor ans = Tensor(DT_DOUBLE, nevts);
+    
+    for (int i = 0; i < helicities.dim_size(0); i++) {
+        Tensor hel = helicities.Slice(i, i+1);
+    }
+    /*
+        nevts = tf.shape(all_ps, out_type=DTYPEINT)[0]
+        ans = tf.zeros(nevts, dtype=DTYPE)
+        for hel in self.helicities:
+            ans += self.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11)
+        print(DTYPE, nevts)
+        return ans/self.denominator*/
 }
 
 void Matrix::matrix(const Tensor* all_ps, Tensor hel) {
     int ngraphs = 3;
     int nwavefuncs = 5;
     int ncolor = 2;
+    double ZERO = 0.;
 }
 
 REGISTER_KERNEL_BUILDER(Name("Matrix").Device(DEVICE_CPU), MatrixOp);

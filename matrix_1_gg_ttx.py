@@ -183,8 +183,7 @@ class Matrix_1_gg_ttx(object):
         ans = tf.zeros(nevts, dtype=DTYPE)
         for hel in self.helicities:
             ans += self.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11)
-
-        print("nevts, ans", nevts, ans, ans/self.denominator, self.helicities)
+        print(DTYPE, nevts, tf.shape(all_ps, out_type=DTYPEINT))
         return ans/self.denominator
 
     @tf.function(input_signature=matrix_signature)
