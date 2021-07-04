@@ -181,9 +181,16 @@ class Matrix_1_gg_ttx(object):
         # ----------
         nevts = tf.shape(all_ps, out_type=DTYPEINT)[0]
         ans = tf.zeros(nevts, dtype=DTYPE)
+        matrixOp = tf.load_op_library('./matrix.so')
+        #ans2 = tf.zeros(nevts, dtype=DTYPE)
         for hel in self.helicities:
             ans += self.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11)
-        print(DTYPE, nevts, tf.shape(all_ps, out_type=DTYPEINT))
+            #print(ans,hel,mdl_MT,mdl_WT,GC_10,GC_11)
+            #print(mdl_MT.get_shape())
+            #print(mdl_MT, matrixOp.matrix(all_ps, hel))
+            #ans2 += matrixOp.matrix(all_ps)
+            matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11)
+            #print(ans, self.helicities, hel, matrixOp.matrix(all_ps, hel))
         return ans/self.denominator
 
     @tf.function(input_signature=matrix_signature)
@@ -292,11 +299,11 @@ if __name__ == "__main__":
     inc_p2 = tf.concat([ea, zeros, zeros, -ea], axis=dim_ax)
 
     all_ps = tf.concat([inc_p1, inc_p2, outgoing_4m], axis=par_ax)
-    print(all_ps) # Aggiunto 
+    #print(all_ps) # Aggiunto 
     model_params.freeze_alpha_s(0.118)
     wgt_set = matrix.smatrix(all_ps, *model_params.evaluate(None))
-    matrixOp = tf.load_op_library('./matrix.so')
-    matrixOp.matrix(all_ps)
+    #matrixOp = tf.load_op_library('./matrix.so')
+    #matrixOp.matrix(all_ps)
     print("All good!")
     for i, (p, wgt) in enumerate(zip(all_ps, wgt_set)):
         print(f"\n#{i} ME value: {wgt.numpy():.3e} for P set:\n{p.numpy()}")
