@@ -1,7 +1,7 @@
 #include "tensorflow/core/framework/op.h"
 #include "tensorflow/core/framework/op_kernel.h"
 #include "tensorflow/core/framework/shape_inference.h"
-#include "tensorflow/cc/ops/math_ops.h"
+//#include "tensorflow/cc/ops/math_ops.h"
 
 #include <vector>
 
@@ -21,6 +21,8 @@ REGISTER_OP("Matrix")
       c->set_output(0, c->input(0));
       return Status::OK();
     });
+
+Tensor matrix();
     
 class MatrixOp : public OpKernel {
  public:
@@ -37,16 +39,28 @@ class MatrixOp : public OpKernel {
                                                      &output_tensor));
     auto output_flat = output_tensor->flat<double>();
 
-    // Set all but the first element of the output tensor to 0.
-    const int N = all_ps_flat.size();
-    for (int i = 1; i < N; i++) {
-      output_flat(i) = 0;
-    }
-
-    // Preserve the first input value if possible.
-    if (N > 0) output_flat(0) = all_ps_flat(0);
+    matrix();
   }
 };
+
+Tensor matrix() {
+    int ngraphs = 3;
+    int nwavefuncs = 5;
+    int ncolor = 2;
+    double ZERO = 0.;
+    
+    Tensor denom = Tensor(DT_COMPLEX128);
+    denom.vec<complex128>()(0) = 3;
+    denom.vec<complex128>()(1) = 3;
+    
+    Tensor cf = Tensor(DT_COMPLEX128, TensorShape ({2,2}));
+    cf.vec<complex128>()(0) = 16;
+    cf.vec<complex128>()(1) = -2;
+    cf.vec<complex128>()(2) = -2;
+    cf.vec<complex128>()(3) = 16;
+    
+    return Tensor(); // dummy tensor
+}
 
 REGISTER_KERNEL_BUILDER(Name("Matrix").Device(DEVICE_CPU), MatrixOp);
 
