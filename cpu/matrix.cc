@@ -37,6 +37,8 @@ std::vector<complex128> _vx_no_BRST_check_massive_pp_nonzero(double* p, double v
 std::vector<complex128>  _vx_no_BRST_check_massive_pp_nonzero_pt_nonzero(double* p, double nhel, double hel0, double nsvahl, double pp, double pt, double emp);
 std::vector<complex128> _vx_no_BRST_check_massive_pp_nonzero_pt_zero(double* p, double nhel, double nsvahl);
 std::vector<complex128> _vx_no_BRST_check_massless(double* p, double nhel, double nsv);
+std::vector<complex128> _vx_no_BRST_check_massless_pt_nonzero(double* p, double nhel, double nsv, double pp, double pt);
+std::vector<complex128> _vx_no_BRST_check_massless_pt_zero(double* p, double nhel, double nsv);
 double signvec(double x, double y);
     
 class MatrixOp : public OpKernel {
@@ -206,6 +208,44 @@ std::vector<complex128> _vx_no_BRST_check_massive_pp_nonzero_pt_zero(double* p, 
 }
 
 std::vector<complex128> _vx_no_BRST_check_massless(double* p, double nhel, double nsv) {
+    double pp = p[0];
+    double pt = sqrt(p[1] * p[1] + p[2] * p[2]);
+    std::vector<complex128> v(4, complex128(0,0));
+    complex128 v2 = complex128(0, 0);
+    complex128 v5 = complex128(nhel * pt / pp * SQH, 0);
+    
+    std::vector<complex128> v34(2, complex128(0,0));
+    if (pt != 0) {
+        v34 = _vx_no_BRST_check_massless_pt_nonzero(p, nhel, nsv, pp, pt);
+    }
+    else {
+        v34 = _vx_no_BRST_check_massless_pt_zero(p, nhel, nsv);
+    }
+    
+    v[0] = v2;
+    v[1] = v34[0];
+    v[2] = v34[1];
+    v[3] = v5;
+    
+    return v;
+}
+
+std::vector<complex128> _vx_no_BRST_check_massless_pt_nonzero(double* p, double nhel, double nsv, double pp, double pt) {
+    double pzpt = p[3] / (pp * pt) * SQH * nhel;
+    
+    std::vector<complex128> v(2, complex128(0,0));
+    v[0] = complex128(-p[1] * pzpt, -nsv * p[2] / pt * SQH);
+    v[1] = complex128(-p[2] * pzpt, nsv * p[1] / pt * SQH);
+    
+    return v;
+}
+
+std::vector<complex128> _vx_no_BRST_check_massless_pt_zero(double* p, double nhel, double nsv) {
+    std::vector<complex128> v(2, complex128(0,0));
+    v[0] = complex128(-nhel * SQH, 0);
+    v[1] = complex128(0, nsv * signvec(SQH, p[3]));
+    
+    return v;
 }/*
     """
     Parameters
@@ -216,17 +256,12 @@ std::vector<complex128> _vx_no_BRST_check_massless(double* p, double nhel, doubl
 
     Returns
     -------
-        tf.Tensor, of shape=(None,4) and dtype DTYPECOMPLEX
+        tf.Tensor, of shape=(None,2) and dtype DTYPECOMPLEX
     """
-    pp = p[:, 0]
-    pt = tfmath.sqrt(p[:, 1] ** 2 + p[:, 2] ** 2)
-    v2 = tf.expand_dims(tf.zeros_like(p[:,0], dtype=DTYPECOMPLEX), 1)
-    v5 = tf.expand_dims(complex_tf(nhel * pt / pp * SQH, 0.0), 1)
-    cond = tf.expand_dims(pt != 0, 1)
-    v34 = tf.where(cond,
-                   _vx_no_BRST_check_massless_pt_nonzero(p, nhel, nsv, pp, pt),
-                   _vx_no_BRST_check_massless_pt_zero(p, nhel, nsv))
-    return tf.concat([v2, v34, v5], axis=1)*/
+    v = [complex_tf(0,0)] * 2
+    v[0] = tf.ones_like(p[:,0], dtype=DTYPECOMPLEX) * complex_tf(-nhel * SQH, 0.0)
+    v[1] = complex_tf(0.0, nsv * signvec(SQH, p[:, 3]))
+    return tf.stack(v, axis=1)*/
 
 double signvec(double x, double y) {
     int sign = 0;
