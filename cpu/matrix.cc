@@ -24,8 +24,20 @@ REGISTER_OP("Matrix")
     });
 
 int nevents = 2;
+double SQH = sqrt(0.5);
 Tensor matrix(const double*, const double*, const double, const double, const complex128*, const complex128*);
 Tensor vxxxxx(double*, double, double, double);
+std::vector<complex128> _vx_BRST_check(double* p, double vmass);
+std::vector<complex128> _vx_no_BRST_check(double *p, double vmass, double nhel, double nsv, double hel0, double nsvahl, double pp, double pt);
+std::vector<complex128> _vx_BRST_check_massless(double* p);
+std::vector<complex128> _vx_BRST_check_massive(double* p, double vmass);
+std::vector<complex128> _vx_no_BRST_check_massive(double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt);
+std::vector<complex128> _vx_no_BRST_check_massive_pp_zero(double nhel, double nsvahl);
+std::vector<complex128> _vx_no_BRST_check_massive_pp_nonzero(double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt);
+std::vector<complex128>  _vx_no_BRST_check_massive_pp_nonzero_pt_nonzero(double* p, double nhel, double hel0, double nsvahl, double pp, double pt, double emp);
+std::vector<complex128> _vx_no_BRST_check_massive_pp_nonzero_pt_zero(double* p, double nhel, double nsvahl);
+std::vector<complex128> _vx_no_BRST_check_massless(double* p, double nhel, double nsv);
+double signvec(double x, double y);
     
 class MatrixOp : public OpKernel {
  public:
@@ -91,20 +103,135 @@ Tensor matrix(const double* all_ps, const double* hel, const double mdl_MT, cons
             all_ps_3[j] = all_ps[16 * i + j + 12];
         } 
         auto w0 = vxxxxx(all_ps_0, ZERO, hel[0], -1);
+        auto w1 = vxxxxx(all_ps_1, ZERO, hel[1], -1);
         //Tensor w0 = vxxxxx(all_ps[:,0],ZERO,hel[0],-1)
+        //w1 = vxxxxx(all_ps[:,1],ZERO,hel[1],float_me(-1))
+        //w2 = oxxxxx(all_ps[:,2],mdl_MT,hel[2],float_me(+1))
+        //w3 = ixxxxx(all_ps[:,3],mdl_MT,hel[3],float_me(-1))
+        //w4= VVV1P0_1(w0,w1,GC_10,ZERO,ZERO)
     }
     
     return Tensor(); // dummy tensor
 }
 
-Tensor complex_tf(Scope& scope, double real, double imag) {
-     /*Complex(
-  const ::tensorflow::Scope & scope,
-  ::tensorflow::Input real,
-  ::tensorflow::Input imag
-)*/
-    return Tensor(); // dummy tensor
-//    return tensorflow::ops::Complex(scope, real, imag);
+std::vector<complex128> _vx_BRST_check(double* p, double vmass) {
+    if (vmass == 0) {
+        return _vx_BRST_check_massless(p);
+    }
+    else {
+        return _vx_BRST_check_massive(p, vmass);
+    }
+}
+
+std::vector<complex128>  _vx_no_BRST_check(double* p, double vmass, double nhel, double nsv, double hel0, double nsvahl, double pp, double pt) {
+    if (vmass != 0) {
+        return _vx_no_BRST_check_massive(
+                            p, vmass, nhel, hel0, nsvahl, pp, pt
+                                                );
+    }
+    else {
+        return _vx_no_BRST_check_massless(p, nhel, nsv);
+    }
+}
+
+std::vector<complex128> _vx_BRST_check_massless(double* p) {
+    std::vector<complex128> r(p, p + 4);
+    for (int i = 0; i < 4; i++) {
+        r[i] = p[i]/p[0];
+    }
+    return r;
+}
+
+std::vector<complex128> _vx_BRST_check_massive(double* p, double vmass) {
+    std::vector<complex128> r(p, p + 4);
+    for (int i = 0; i < 4; i++) {
+        r[i] = p[i]/vmass;
+    }
+    return r;
+}
+
+std::vector<complex128> _vx_no_BRST_check_massive(double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt) {
+    if (pp == 0) {
+        return _vx_no_BRST_check_massive_pp_zero(nhel, nsvahl);
+    }
+    else {
+        return _vx_no_BRST_check_massive_pp_nonzero(
+                        p, vmass, nhel, hel0, nsvahl, pp, pt
+                                                    );
+    }
+}
+
+std::vector<complex128> _vx_no_BRST_check_massive_pp_zero(double nhel, double nsvahl) {
+    double hel0 = 1.0 - abs(nhel);
+    std::vector<complex128> v(4, complex128(1,0));
+    v[1] = complex128(-nhel * SQH, 0.0);
+    v[2] = complex128(0.0, nsvahl * SQH);
+    v[3] = complex128(hel0, 0.0);
+    return v;
+}
+
+std::vector<complex128> _vx_no_BRST_check_massive_pp_nonzero(double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt) {
+    double emp = p[0] / (vmass * pp);
+    complex128 v2 = complex128(hel0 * pp / vmass, 0.0);
+    complex128 v5 = complex128(hel0 * p[3] * emp + nhel * pt / pp * SQH, 0.0);
+    
+    std::vector<complex128> v34(2, complex128(1,0));
+    if (pt != 0) {
+        v34 = _vx_no_BRST_check_massive_pp_nonzero_pt_nonzero(p, nhel, hel0, nsvahl, pp, pt, emp);
+    }
+    else {
+        v34 = _vx_no_BRST_check_massive_pp_nonzero_pt_zero(p, nhel, nsvahl);
+    }
+    std::vector<complex128> ret(4, complex128(1,0));
+    ret[0] = v2;
+    ret[1] = v34[0];
+    ret[2] = v34[1];
+    ret[3] = v5;
+    return ret;
+}
+
+std::vector<complex128> _vx_no_BRST_check_massive_pp_nonzero_pt_nonzero(double* p, double nhel, double hel0, double nsvahl, double pp, double pt, double emp) {
+    std::vector<complex128> v(2, complex128(0,0));
+    double pzpt = p[3] / (pp * pt) * SQH * nhel;
+    v[0] = complex128(hel0 * p[1] * emp - p[1] * pzpt, -nsvahl * p[2] / pt * SQH);
+    v[1] = complex128(hel0 * p[2] * emp - p[2] * pzpt, nsvahl * p[1] / pt * SQH);
+    return v;
+}
+
+std::vector<complex128> _vx_no_BRST_check_massive_pp_nonzero_pt_zero(double* p, double nhel, double nsvahl) {
+    std::vector<complex128> v(2, complex128(0,0));
+    v[0] = complex128(-nhel * SQH, 0);
+    v[1] = complex128(0.0, nsvahl * signvec(SQH, p[3]));
+    return v;
+}
+
+std::vector<complex128> _vx_no_BRST_check_massless(double* p, double nhel, double nsv) {
+}/*
+    """
+    Parameters
+    ----------
+        p: tf.Tensor, four-momenta of shape=(None,4)
+        nhel: tf.Tensor, boson helicity of shape=()
+        nsv: tf.Tensor, final|initial state of shape=()
+
+    Returns
+    -------
+        tf.Tensor, of shape=(None,4) and dtype DTYPECOMPLEX
+    """
+    pp = p[:, 0]
+    pt = tfmath.sqrt(p[:, 1] ** 2 + p[:, 2] ** 2)
+    v2 = tf.expand_dims(tf.zeros_like(p[:,0], dtype=DTYPECOMPLEX), 1)
+    v5 = tf.expand_dims(complex_tf(nhel * pt / pp * SQH, 0.0), 1)
+    cond = tf.expand_dims(pt != 0, 1)
+    v34 = tf.where(cond,
+                   _vx_no_BRST_check_massless_pt_nonzero(p, nhel, nsv, pp, pt),
+                   _vx_no_BRST_check_massless_pt_zero(p, nhel, nsv))
+    return tf.concat([v2, v34, v5], axis=1)*/
+
+double signvec(double x, double y) {
+    int sign = 0;
+    y >= 0 ? sign = 1 : sign = -1;
+    return x * sign;
 }
 
 Tensor vxxxxx(double* p, double vmass, double nhel, double nsv) {
@@ -115,8 +242,35 @@ Tensor vxxxxx(double* p, double vmass, double nhel, double nsv) {
     //pt2 = p[:, 1] ** 2 + p[:, 2] ** 2
     //pp = tfmath.minimum(p[:, 0], tfmath.sqrt(pt2 + p[:, 3] ** 2))
     //pt = tfmath.minimum(pp, tfmath.sqrt(pt2))
+    //BRST = nhel == 4
+    //v = tf.cond(BRST,
+    //            lambda: _vx_BRST_check(p, vmass),
+    //            lambda: _vx_no_BRST_check(
+    //                       p, vmass, nhel, nsv, hel0, nsvahl, pp, pt
+    //                                 )
+    //           )
+    //eps = tf.concat([v0, v1, v], axis=1)
+    //return tf.transpose(eps)
+    
+    complex128 v0 = complex128(p[0] * nsv, p[3] * nsv);
+    complex128 v1 = complex128(p[1] * nsv, p[2] * nsv);
     
     double pt2 = p[1] * p[1] + p[2] * p[2];
+    double pp = std::min(p[0], sqrt(pt2 + p[3] * p[3]));
+    double pt = std::min(pp, sqrt(pt2));
+    
+    double hel0 = 1 - abs(nhel);
+    double nsvahl = nsv * abs(nhel);
+    
+    std::vector<complex128> v;
+    
+    if (nhel == 4) {
+        v = _vx_BRST_check(p, vmass);
+    }
+    else {
+        v = _vx_no_BRST_check(p, vmass, nhel, nsv, hel0, nsvahl, pp, pt);
+    }
+    
     return Tensor(); // dummy tensor
 }
 

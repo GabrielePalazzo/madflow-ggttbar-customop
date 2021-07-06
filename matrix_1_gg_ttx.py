@@ -224,7 +224,6 @@ class Matrix_1_gg_ttx(object):
         # ----------
         # Begin code
         # ----------
-        print(all_ps, all_ps[:,0])
         w0 = vxxxxx(all_ps[:,0],ZERO,hel[0],float_me(-1))
         w1 = vxxxxx(all_ps[:,1],ZERO,hel[1],float_me(-1))
         w2 = oxxxxx(all_ps[:,2],mdl_MT,hel[2],float_me(+1))
