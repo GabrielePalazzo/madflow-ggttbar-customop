@@ -26,7 +26,11 @@ REGISTER_OP("Matrix")
 int nevents = 2;
 double SQH = sqrt(0.5);
 Tensor matrix(const double*, const double*, const double, const double, const complex128*, const complex128*);
-Tensor vxxxxx(double*, double, double, double);
+std::vector<complex128> vxxxxx(double* p, double fmass, double nhel, double nsf);
+std::vector<complex128> oxxxxx(double* p, double fmass, double nhel, double nsf);
+std::vector<complex128> _ox_massless(double* p, double nhel, double nsf, double nh);
+complex128 _ix_massless_sqp0p3_zero(double* p, double nhel);
+complex128 _ix_massless_sqp0p3_nonzero(double* p, double nh, double sqp0p3);
 std::vector<complex128> _vx_BRST_check(double* p, double vmass);
 std::vector<complex128> _vx_no_BRST_check(double *p, double vmass, double nhel, double nsv, double hel0, double nsvahl, double pp, double pt);
 std::vector<complex128> _vx_BRST_check_massless(double* p);
@@ -106,6 +110,7 @@ Tensor matrix(const double* all_ps, const double* hel, const double mdl_MT, cons
         } 
         auto w0 = vxxxxx(all_ps_0, ZERO, hel[0], -1);
         auto w1 = vxxxxx(all_ps_1, ZERO, hel[1], -1);
+        auto w2 = oxxxxx(all_ps_2, ZERO, hel[2], +1);
         //Tensor w0 = vxxxxx(all_ps[:,0],ZERO,hel[0],-1)
         //w1 = vxxxxx(all_ps[:,1],ZERO,hel[1],float_me(-1))
         //w2 = oxxxxx(all_ps[:,2],mdl_MT,hel[2],float_me(+1))
@@ -114,6 +119,55 @@ Tensor matrix(const double* all_ps, const double* hel, const double mdl_MT, cons
     }
     
     return Tensor(); // dummy tensor
+}
+
+std::vector<complex128> _ox_massless(double* p, double nhel, double nsf, double nh) {
+    double sqp0p3 = sqrt(std::max(p[0] + p[3], 0.0)) * nsf;
+    double mult[] = {1, 1, -1, 1};
+    
+    complex128 chi0;
+    if (sqp0p3 == 0) {
+        chi0 = _ix_massless_sqp0p3_zero(p, nhel);
+    }
+    else {
+        double prod[4];
+        for (int i = 0; i < 4; i++)
+            prod[i] = p[i] * mult[i];
+        chi0 = _ix_massless_sqp0p3_nonzero(prod, nh, sqp0p3);
+    }
+    //qui
+}/*
+    """
+    Parameters
+    ----------
+        p: tf.Tensor, four-momenta of shape=(None,4)
+        nhel: tf.Tensor, fermion helicity of shape=()
+        nsf: tf.Tensor, particle|anti-particle of shape=()
+        nh: tf.Tensor, helicity times particle|anti-particle of shape=()
+
+    Returns
+    -------
+        tf.Tensor, of shape=(None,4) and dtype DTYPECOMPLEX
+    """
+    sqp0p3 = tfmath.sqrt(tfmath.maximum(p[:, 0] + p[:, 3], 0.0)) * nsf
+    mult = tf.expand_dims(float_me([1,1,-1,1]), 0)
+    chi0 = tf.where(sqp0p3 == 0,
+                    _ix_massless_sqp0p3_zero(p, nhel),
+                    _ix_massless_sqp0p3_nonzero(p*mult, nh, sqp0p3)
+                   )
+    chi = tf.stack([chi0, complex_tf(sqp0p3, 0.0)], axis=1)
+    # ongoing fermion has nh inverted wrt the ingoing fermion
+    return tf.cond(nh == 1,
+                   lambda: _ix_massless_nh_not_one(chi),
+                   lambda: _ix_massless_nh_one(chi)
+                  )*/
+
+complex128 _ix_massless_sqp0p3_zero(double* p, double nhel) {
+    return complex128(-nhel * sqrt(2.0 * p[0]), 0.0);
+}
+
+complex128 _ix_massless_sqp0p3_nonzero(double* p, double nh, double sqp0p3) {
+    return complex128(nh * p[1] / sqp0p3, p[2] / sqp0p3);
 }
 
 std::vector<complex128> _vx_BRST_check(double* p, double vmass) {
@@ -125,7 +179,7 @@ std::vector<complex128> _vx_BRST_check(double* p, double vmass) {
     }
 }
 
-std::vector<complex128>  _vx_no_BRST_check(double* p, double vmass, double nhel, double nsv, double hel0, double nsvahl, double pp, double pt) {
+std::vector<complex128> _vx_no_BRST_check(double* p, double vmass, double nhel, double nsv, double hel0, double nsvahl, double pp, double pt) {
     if (vmass != 0) {
         return _vx_no_BRST_check_massive(
                             p, vmass, nhel, hel0, nsvahl, pp, pt
@@ -246,22 +300,7 @@ std::vector<complex128> _vx_no_BRST_check_massless_pt_zero(double* p, double nhe
     v[1] = complex128(0, nsv * signvec(SQH, p[3]));
     
     return v;
-}/*
-    """
-    Parameters
-    ----------
-        p: tf.Tensor, four-momenta of shape=(None,4)
-        nhel: tf.Tensor, boson helicity of shape=()
-        nsv: tf.Tensor, final|initial state of shape=()
-
-    Returns
-    -------
-        tf.Tensor, of shape=(None,2) and dtype DTYPECOMPLEX
-    """
-    v = [complex_tf(0,0)] * 2
-    v[0] = tf.ones_like(p[:,0], dtype=DTYPECOMPLEX) * complex_tf(-nhel * SQH, 0.0)
-    v[1] = complex_tf(0.0, nsv * signvec(SQH, p[:, 3]))
-    return tf.stack(v, axis=1)*/
+}
 
 double signvec(double x, double y) {
     int sign = 0;
@@ -269,24 +308,7 @@ double signvec(double x, double y) {
     return x * sign;
 }
 
-Tensor vxxxxx(double* p, double vmass, double nhel, double nsv) {
-    //Scope root = Scope::NewRootScope();
-    //Tensor v0 = tensorflow::ops::ExpandDims(root, complex_tf(root, 1, 1), 1);
-    //v0 = tf.expand_dims(complex_tf(p[:, 0] * nsv, p[:, 3] * nsv), 1)
-    //v1 = tf.expand_dims(complex_tf(p[:, 1] * nsv, p[:, 2] * nsv), 1)
-    //pt2 = p[:, 1] ** 2 + p[:, 2] ** 2
-    //pp = tfmath.minimum(p[:, 0], tfmath.sqrt(pt2 + p[:, 3] ** 2))
-    //pt = tfmath.minimum(pp, tfmath.sqrt(pt2))
-    //BRST = nhel == 4
-    //v = tf.cond(BRST,
-    //            lambda: _vx_BRST_check(p, vmass),
-    //            lambda: _vx_no_BRST_check(
-    //                       p, vmass, nhel, nsv, hel0, nsvahl, pp, pt
-    //                                 )
-    //           )
-    //eps = tf.concat([v0, v1, v], axis=1)
-    //return tf.transpose(eps)
-    
+std::vector<complex128> vxxxxx(double* p, double vmass, double nhel, double nsv) {
     complex128 v0 = complex128(p[0] * nsv, p[3] * nsv);
     complex128 v1 = complex128(p[1] * nsv, p[2] * nsv);
     
@@ -297,7 +319,8 @@ Tensor vxxxxx(double* p, double vmass, double nhel, double nsv) {
     double hel0 = 1 - abs(nhel);
     double nsvahl = nsv * abs(nhel);
     
-    std::vector<complex128> v;
+    std::vector<complex128> v(4, complex128(0,0));
+    std::vector<complex128> ret(6, complex128(0,0));
     
     if (nhel == 4) {
         v = _vx_BRST_check(p, vmass);
@@ -306,7 +329,36 @@ Tensor vxxxxx(double* p, double vmass, double nhel, double nsv) {
         v = _vx_no_BRST_check(p, vmass, nhel, nsv, hel0, nsvahl, pp, pt);
     }
     
-    return Tensor(); // dummy tensor
+    ret[0] = v0;
+    ret[1] = v1;
+    for (int i = 0; i < 4; i++)
+        ret[i+2] = v[i];
+    
+    return ret;
+}
+
+std::vector<complex128> oxxxxx(double* p, double fmass, double nhel, double nsf) {
+    complex128 v0 = complex128(p[0] * nsf, p[3] * nsf);
+    complex128 v1 = complex128(p[1] * nsf, p[2] * nsf);
+    
+    double nh = nhel * nsf;
+    
+    std::vector<complex128> v(4, complex128(0,0));
+    std::vector<complex128> ret(6, complex128(0,0));
+    
+    if (fmass != 0) {
+        //v = _ox_massive(p, fmass, nhel, nsf, nh);
+    }
+    else {
+        v = _ox_massless(p, nhel, nsf, nh);
+    }
+    
+    ret[0] = v0;
+    ret[1] = v1;
+    for (int i = 0; i < 4; i++)
+        ret[i+2] = v[i];
+    
+    return ret;
 }
 
 REGISTER_KERNEL_BUILDER(Name("Matrix").Device(DEVICE_CPU), MatrixOp);
