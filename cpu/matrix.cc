@@ -25,12 +25,18 @@ REGISTER_OP("Matrix")
 
 int nevents = 2;
 double SQH = sqrt(0.5);
+complex128 CZERO = complex128(0.0, 0.0);
 Tensor matrix(const double*, const double*, const double, const double, const complex128*, const complex128*);
 std::vector<complex128> vxxxxx(double* p, double fmass, double nhel, double nsf);
 std::vector<complex128> oxxxxx(double* p, double fmass, double nhel, double nsf);
 std::vector<complex128> _ox_massless(double* p, double nhel, double nsf, double nh);
+std::vector<complex128> _ox_massive(double* p, double fmass, double nhel, double nsf, double nh);
 complex128 _ix_massless_sqp0p3_zero(double* p, double nhel);
 complex128 _ix_massless_sqp0p3_nonzero(double* p, double nh, double sqp0p3);
+std::vector<complex128> _ix_massless_nh_one(complex128* chi);
+std::vector<complex128> _ix_massless_nh_not_one(complex128* chi);
+std::vector<complex128> _ox_massive_pp_zero(double fmass, double nsf, int ip, int im);
+std::vector<complex128> _ox_massive_pp_nonzero(double* p, double fmass, double nsf, double nh, double pp);
 std::vector<complex128> _vx_BRST_check(double* p, double vmass);
 std::vector<complex128> _vx_no_BRST_check(double *p, double vmass, double nhel, double nsv, double hel0, double nsvahl, double pp, double pt);
 std::vector<complex128> _vx_BRST_check_massless(double* p);
@@ -43,6 +49,7 @@ std::vector<complex128> _vx_no_BRST_check_massive_pp_nonzero_pt_zero(double* p, 
 std::vector<complex128> _vx_no_BRST_check_massless(double* p, double nhel, double nsv);
 std::vector<complex128> _vx_no_BRST_check_massless_pt_nonzero(double* p, double nhel, double nsv, double pp, double pt);
 std::vector<complex128> _vx_no_BRST_check_massless_pt_zero(double* p, double nhel, double nsv);
+double sign(double x, double y);
 double signvec(double x, double y);
     
 class MatrixOp : public OpKernel {
@@ -135,32 +142,90 @@ std::vector<complex128> _ox_massless(double* p, double nhel, double nsf, double 
             prod[i] = p[i] * mult[i];
         chi0 = _ix_massless_sqp0p3_nonzero(prod, nh, sqp0p3);
     }
-    //qui
+    
+    complex128 chi[2];
+    chi[0] = chi0;
+    chi[1] = complex128(sqp0p3, 0.0);
+    
+    if (nh == 1) {
+        return _ix_massless_nh_not_one(chi);
+    }
+    else {
+        return _ix_massless_nh_one(chi);
+    }
+}
+
+std::vector<complex128> _ox_massive(double* p, double fmass, double nhel, double nsf, double nh) {
+    double pp = std::min(p[0], sqrt(p[1] * p[1] + p[2] * p[2] + p[3] * p[3]));
+    
+    int ip = -((int)(1 - nh) / 2) * (int)nhel;
+    int im =  ((int)(1 + nh) / 2) * (int)nhel;
+    
+    if (pp == 0) {
+        return _ox_massive_pp_zero(fmass, nsf, ip, im);
+    }
+    else {
+        return _ox_massive_pp_nonzero(p, fmass, nsf, nh, pp);
+    }
+}
+
+std::vector<complex128> _ox_massive_pp_zero(double fmass, double nsf, int ip, int im) {
+    double sqm[2];
+    sqm[0] = sqrt(fmass);
+    sqm[1] = sign(sqm[0], fmass);
+    
+    std::vector<complex128> v(4, complex128(0,0));
+    
+    v[0] = complex128((double)im * sqm[abs(im)], 0.0);
+    v[0] = complex128((double)ip * nsf * sqm[abs(im)], 0.0);
+    v[0] = complex128((double)im * nsf * sqm[abs(ip)], 0.0);
+    v[0] = complex128((double)ip * sqm[abs(ip)], 0.0);
+    
+    return v;
+}
+
+std::vector<complex128> _ox_massive_pp_nonzero(double* p, double fmass, double nsf, double nh, double pp) {
 }/*
     """
     Parameters
     ----------
         p: tf.Tensor, four-momenta of shape=(None,4)
-        nhel: tf.Tensor, fermion helicity of shape=()
+        fmass: tf.Tensor, fermion mass of shape=()
         nsf: tf.Tensor, particle|anti-particle of shape=()
         nh: tf.Tensor, helicity times particle|anti-particle of shape=()
+        pp: tf.Tensor, minimum of energy|three-momentum modulus of shape=(None)
 
     Returns
     -------
         tf.Tensor, of shape=(None,4) and dtype DTYPECOMPLEX
     """
-    sqp0p3 = tfmath.sqrt(tfmath.maximum(p[:, 0] + p[:, 3], 0.0)) * nsf
-    mult = tf.expand_dims(float_me([1,1,-1,1]), 0)
-    chi0 = tf.where(sqp0p3 == 0,
-                    _ix_massless_sqp0p3_zero(p, nhel),
-                    _ix_massless_sqp0p3_nonzero(p*mult, nh, sqp0p3)
-                   )
-    chi = tf.stack([chi0, complex_tf(sqp0p3, 0.0)], axis=1)
-    # ongoing fermion has nh inverted wrt the ingoing fermion
-    return tf.cond(nh == 1,
-                   lambda: _ix_massless_nh_not_one(chi),
-                   lambda: _ix_massless_nh_one(chi)
-                  )*/
+    sf = tf.stack(
+        [(1 + nsf + (1 - nsf) * nh) * 0.5, (1 + nsf - (1 - nsf) * nh) * 0.5], axis=0
+    )
+    omega = tf.stack(
+        [tfmath.sqrt(p[:, 0] + pp), fmass / (tfmath.sqrt(p[:, 0] + pp))], axis=0
+    )
+    ip = int_me( (1 + nh) // 2 )
+    im = int_me( (1 - nh) // 2 )
+    sfomeg = tf.stack(
+        [sf[0] * omega[ip], sf[1] * omega[im]], axis=0
+    )
+    pp3 = tfmath.maximum(pp + p[:, 3], 0.0)
+    chi1 = tf.where(
+        pp3 == 0,
+        complex_tf(-nh, 0),
+        complex_tf(
+            nh * p[:, 1] / tfmath.sqrt(2.0 * pp * pp3), -p[:, 2] / tfmath.sqrt(2.0 * pp * pp3)
+        ),
+    )
+    chi2 = complex_tf(tfmath.sqrt(pp3 * 0.5 / pp), 0.0)
+    chi = tf.stack([chi2, chi1], axis=0)
+    v = [complex_tf(0,0)] * 4
+    v[0] = complex_tf(sfomeg[1], 0.0) * chi[im]
+    v[1] = complex_tf(sfomeg[1], 0.0) * chi[ip]
+    v[2] = complex_tf(sfomeg[0], 0.0) * chi[im]
+    v[3] = complex_tf(sfomeg[0], 0.0) * chi[ip]
+    return tf.stack(v, axis=1)*/
 
 complex128 _ix_massless_sqp0p3_zero(double* p, double nhel) {
     return complex128(-nhel * sqrt(2.0 * p[0]), 0.0);
@@ -168,6 +233,26 @@ complex128 _ix_massless_sqp0p3_zero(double* p, double nhel) {
 
 complex128 _ix_massless_sqp0p3_nonzero(double* p, double nh, double sqp0p3) {
     return complex128(nh * p[1] / sqp0p3, p[2] / sqp0p3);
+}
+
+std::vector<complex128> _ix_massless_nh_one(complex128* chi) {
+    std::vector<complex128> v(4, complex128(0,0));
+    
+    v[2] = chi[0];
+    v[3] = chi[1];
+    v[0] = CZERO;
+    v[1] = CZERO;
+    return v;
+}
+
+std::vector<complex128> _ix_massless_nh_not_one(complex128* chi) {
+    std::vector<complex128> v(4, complex128(0,0));
+    
+    v[0] = chi[1];
+    v[1] = chi[0];
+    v[2] = CZERO;
+    v[3] = CZERO;
+    return v;
 }
 
 std::vector<complex128> _vx_BRST_check(double* p, double vmass) {
@@ -302,10 +387,14 @@ std::vector<complex128> _vx_no_BRST_check_massless_pt_zero(double* p, double nhe
     return v;
 }
 
-double signvec(double x, double y) {
+double sign(double x, double y) {
     int sign = 0;
     y >= 0 ? sign = 1 : sign = -1;
     return x * sign;
+}
+
+double signvec(double x, double y) {
+    return sign(x, y);
 }
 
 std::vector<complex128> vxxxxx(double* p, double vmass, double nhel, double nsv) {
@@ -347,7 +436,7 @@ std::vector<complex128> oxxxxx(double* p, double fmass, double nhel, double nsf)
     std::vector<complex128> ret(6, complex128(0,0));
     
     if (fmass != 0) {
-        //v = _ox_massive(p, fmass, nhel, nsf, nh);
+        v = _ox_massive(p, fmass, nhel, nsf, nh);
     }
     else {
         v = _ox_massless(p, nhel, nsf, nh);
