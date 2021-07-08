@@ -177,55 +177,42 @@ std::vector<complex128> _ox_massive_pp_zero(double fmass, double nsf, int ip, in
     std::vector<complex128> v(4, complex128(0,0));
     
     v[0] = complex128((double)im * sqm[abs(im)], 0.0);
-    v[0] = complex128((double)ip * nsf * sqm[abs(im)], 0.0);
-    v[0] = complex128((double)im * nsf * sqm[abs(ip)], 0.0);
-    v[0] = complex128((double)ip * sqm[abs(ip)], 0.0);
+    v[1] = complex128((double)ip * nsf * sqm[abs(im)], 0.0);
+    v[2] = complex128((double)im * nsf * sqm[abs(ip)], 0.0);
+    v[3] = complex128((double)ip * sqm[abs(ip)], 0.0);
     
     return v;
 }
 
 std::vector<complex128> _ox_massive_pp_nonzero(double* p, double fmass, double nsf, double nh, double pp) {
-}/*
-    """
-    Parameters
-    ----------
-        p: tf.Tensor, four-momenta of shape=(None,4)
-        fmass: tf.Tensor, fermion mass of shape=()
-        nsf: tf.Tensor, particle|anti-particle of shape=()
-        nh: tf.Tensor, helicity times particle|anti-particle of shape=()
-        pp: tf.Tensor, minimum of energy|three-momentum modulus of shape=(None)
-
-    Returns
-    -------
-        tf.Tensor, of shape=(None,4) and dtype DTYPECOMPLEX
-    """
-    sf = tf.stack(
-        [(1 + nsf + (1 - nsf) * nh) * 0.5, (1 + nsf - (1 - nsf) * nh) * 0.5], axis=0
-    )
-    omega = tf.stack(
-        [tfmath.sqrt(p[:, 0] + pp), fmass / (tfmath.sqrt(p[:, 0] + pp))], axis=0
-    )
-    ip = int_me( (1 + nh) // 2 )
-    im = int_me( (1 - nh) // 2 )
-    sfomeg = tf.stack(
-        [sf[0] * omega[ip], sf[1] * omega[im]], axis=0
-    )
-    pp3 = tfmath.maximum(pp + p[:, 3], 0.0)
-    chi1 = tf.where(
-        pp3 == 0,
-        complex_tf(-nh, 0),
-        complex_tf(
-            nh * p[:, 1] / tfmath.sqrt(2.0 * pp * pp3), -p[:, 2] / tfmath.sqrt(2.0 * pp * pp3)
-        ),
-    )
-    chi2 = complex_tf(tfmath.sqrt(pp3 * 0.5 / pp), 0.0)
-    chi = tf.stack([chi2, chi1], axis=0)
-    v = [complex_tf(0,0)] * 4
-    v[0] = complex_tf(sfomeg[1], 0.0) * chi[im]
-    v[1] = complex_tf(sfomeg[1], 0.0) * chi[ip]
-    v[2] = complex_tf(sfomeg[0], 0.0) * chi[im]
-    v[3] = complex_tf(sfomeg[0], 0.0) * chi[ip]
-    return tf.stack(v, axis=1)*/
+    double sf[] = {(1 + nsf + (1 - nsf) * nh) * 0.5, (1 + nsf - (1 - nsf) * nh) * 0.5};
+    double omega[] = {sqrt(p[0] + pp), fmass / (sqrt(p[0] + pp))};
+    
+    int ip = (int) (1 + nh) / 2;
+    int im = (int) (1 - nh) / 2;
+    
+    double sfomeg[] = {sf[0] * omega[ip], sf[1] * omega[im]};
+    
+    double pp3 = std::max(pp + p[3], 0.0);
+    complex128 chi1;
+    if (pp3 == 0) {
+        chi1 = complex128(-nh, 0);
+    }
+    else {
+        chi1 = complex128(nh * p[1] / sqrt(2.0 * pp * pp3), -p[2] / sqrt(2.0 * pp * pp3));
+    }
+    complex128 chi2(sqrt(pp3 * 0.5 / pp), 0.0);
+    complex128 chi[] = {chi2, chi1};
+    
+    std::vector<complex128> v(4, complex128(0,0));
+    
+    v[0] = complex128(sfomeg[1], 0.0) * chi[im];
+    v[1] = complex128(sfomeg[1], 0.0) * chi[ip];
+    v[2] = complex128(sfomeg[0], 0.0) * chi[im];
+    v[3] = complex128(sfomeg[0], 0.0) * chi[ip];
+    
+    return v;
+}
 
 complex128 _ix_massless_sqp0p3_zero(double* p, double nhel) {
     return complex128(-nhel * sqrt(2.0 * p[0]), 0.0);
