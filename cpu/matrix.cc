@@ -28,11 +28,15 @@ double SQH = sqrt(0.5);
 complex128 CZERO = complex128(0.0, 0.0);
 Tensor matrix(const double*, const double*, const double, const double, const complex128*, const complex128*);
 std::vector<complex128> vxxxxx(double* p, double fmass, double nhel, double nsf);
+std::vector<complex128> ixxxxx(double* p, double fmass, double nhel, double nsf);
 std::vector<complex128> oxxxxx(double* p, double fmass, double nhel, double nsf);
+std::vector<complex128> _ix_massive(double* p, double fmass, double nsf, double nh);
+std::vector<complex128> _ix_massless(double* p, double nhel, double nsf, double nh);
 std::vector<complex128> _ox_massless(double* p, double nhel, double nsf, double nh);
 std::vector<complex128> _ox_massive(double* p, double fmass, double nhel, double nsf, double nh);
 complex128 _ix_massless_sqp0p3_zero(double* p, double nhel);
 complex128 _ix_massless_sqp0p3_nonzero(double* p, double nh, double sqp0p3);
+std::vector<complex128> _ix_massive_pp_nonzero(double* p, double fmass, double nsf, double nh, int ip, int im, double pp);
 std::vector<complex128> _ix_massless_nh_one(complex128* chi);
 std::vector<complex128> _ix_massless_nh_not_one(complex128* chi);
 std::vector<complex128> _ox_massive_pp_zero(double fmass, double nsf, int ip, int im);
@@ -118,6 +122,7 @@ Tensor matrix(const double* all_ps, const double* hel, const double mdl_MT, cons
         auto w0 = vxxxxx(all_ps_0, ZERO, hel[0], -1);
         auto w1 = vxxxxx(all_ps_1, ZERO, hel[1], -1);
         auto w2 = oxxxxx(all_ps_2, ZERO, hel[2], +1);
+        auto w3 = ixxxxx(all_ps_3, mdl_MT, hel[3], -1);
         //Tensor w0 = vxxxxx(all_ps[:,0],ZERO,hel[0],-1)
         //w1 = vxxxxx(all_ps[:,1],ZERO,hel[1],float_me(-1))
         //w2 = oxxxxx(all_ps[:,2],mdl_MT,hel[2],float_me(+1))
@@ -126,6 +131,41 @@ Tensor matrix(const double* all_ps, const double* hel, const double mdl_MT, cons
     }
     
     return Tensor(); // dummy tensor
+}
+
+std::vector<complex128> _ix_massive(double* p, double fmass, double nsf, double nh) {
+    double pp = std::min(p[0], sqrt(p[1] * p[1] + p[2] * p[2] + p[3] * p[3]));
+    
+    int ip = (int)(1 + nh) / 2;
+    int im = (int)(1 - nh) / 2;
+    
+    if (pp == 0) {
+        return _ox_massive_pp_zero(fmass, nsf, im, ip);
+    }
+    else {
+        return _ix_massive_pp_nonzero(p, fmass, nsf, nh, ip, im, pp);
+    }
+}
+
+std::vector<complex128> _ix_massless(double* p, double nhel, double nsf, double nh) {
+    double sqp0p3 = sqrt(std::max(p[0] + p[3], 0.0)) * nsf;
+    
+    complex128 chi1;
+    if (sqp0p3 == 0) {
+        chi1 = _ix_massless_sqp0p3_zero(p, nhel);
+    }
+    else {
+        chi1 = _ix_massless_sqp0p3_nonzero(p, nh, sqp0p3);
+    }
+    
+    complex128 chi[] = {complex128(sqp0p3, 0.0), chi1};
+    
+    if (nh == 1) {
+        return _ix_massless_nh_one(chi);
+    }
+    else {
+        return _ix_massless_nh_not_one(chi);
+    }
 }
 
 std::vector<complex128> _ox_massless(double* p, double nhel, double nsf, double nh) {
@@ -220,6 +260,33 @@ complex128 _ix_massless_sqp0p3_zero(double* p, double nhel) {
 
 complex128 _ix_massless_sqp0p3_nonzero(double* p, double nh, double sqp0p3) {
     return complex128(nh * p[1] / sqp0p3, p[2] / sqp0p3);
+}
+
+std::vector<complex128> _ix_massive_pp_nonzero(double* p, double fmass, double nsf, double nh, int ip, int im, double pp) {
+    double sf[] = {(1 + nsf + (1 - nsf) * nh) * 0.5, (1 + nsf - (1 - nsf) * nh) * 0.5};
+    double omega[] = {sqrt(p[0] + pp), fmass / (sqrt(p[0] + pp))};
+    
+    double sfomeg[] = {sf[0] * omega[ip], sf[1] * omega[im]};
+    
+    double pp3 = std::max(pp + p[3], 0.0);
+    complex128 chi1;
+    if (pp3 == 0) {
+        chi1 = complex128(-nh, 0);
+    }
+    else {
+        chi1 = complex128(nh * p[1] / sqrt(2.0 * pp * pp3), p[2] / sqrt(2.0 * pp * pp3));
+    }
+    complex128 chi2(sqrt(pp3 * 0.5 / pp), 0.0);
+    complex128 chi[] = {chi2, chi1};
+    
+    std::vector<complex128> v(4, complex128(0,0));
+    
+    v[0] = complex128(sfomeg[0], 0.0) * chi[im];
+    v[1] = complex128(sfomeg[0], 0.0) * chi[ip];
+    v[2] = complex128(sfomeg[1], 0.0) * chi[im];
+    v[3] = complex128(sfomeg[1], 0.0) * chi[ip];
+    
+    return v;
 }
 
 std::vector<complex128> _ix_massless_nh_one(complex128* chi) {
@@ -412,6 +479,39 @@ std::vector<complex128> vxxxxx(double* p, double vmass, double nhel, double nsv)
     
     return ret;
 }
+
+std::vector<complex128> ixxxxx(double* p, double fmass, double nhel, double nsf) {
+    complex128 v0 = complex128(-p[0] * nsf, -p[3] * nsf);
+    complex128 v1 = complex128(-p[1] * nsf, -p[2] * nsf);
+    
+    double nh = nhel * nsf;
+    
+    std::vector<complex128> v(4, complex128(0,0));
+    std::vector<complex128> ret(6, complex128(0,0));
+    
+    if (fmass != 0) {
+        v = _ix_massive(p, fmass, nsf, nh);
+    }
+    else {
+        v = _ix_massless(p, nhel, nsf, nh);
+    }
+    
+    ret[0] = v0;
+    ret[1] = v1;
+    for (int i = 0; i < 4; i++)
+        ret[i+2] = v[i];
+    
+    return ret;
+}/*
+    """
+
+    massive = fmass != 0
+    v = tf.cond(massive,
+                lambda: _ix_massive(p, fmass, nsf, nh),
+                lambda: _ix_massless(p, nhel, nsf, nh)
+               )
+    fi = tf.concat([v0, v1, v], axis=1)
+    return tf.transpose(fi)*/
 
 std::vector<complex128> oxxxxx(double* p, double fmass, double nhel, double nsf) {
     complex128 v0 = complex128(p[0] * nsf, p[3] * nsf);
