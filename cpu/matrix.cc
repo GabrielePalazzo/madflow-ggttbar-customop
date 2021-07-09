@@ -26,7 +26,7 @@ REGISTER_OP("Matrix")
 int nevents = 2;
 double SQH = sqrt(0.5);
 complex128 CZERO = complex128(0.0, 0.0);
-Tensor matrix(const double*, const double*, const double, const double, const complex128, const complex128*);
+Tensor matrix(const double*, const double*, const double, const double, const complex128, const complex128);
 std::vector<complex128> vxxxxx(double* p, double fmass, double nhel, double nsf);
 std::vector<complex128> ixxxxx(double* p, double fmass, double nhel, double nsf);
 std::vector<complex128> oxxxxx(double* p, double fmass, double nhel, double nsf);
@@ -55,6 +55,7 @@ std::vector<complex128> _vx_no_BRST_check_massless_pt_nonzero(double* p, double 
 std::vector<complex128> _vx_no_BRST_check_massless_pt_zero(double* p, double nhel, double nsv);
 
 std::vector<complex128> VVV1P0_1(std::vector<complex128> V2, std::vector<complex128> V3, const complex128 COUP, double M1, double W1);
+complex128 FFV1_0(std::vector<complex128> F1, std::vector<complex128> F2, std::vector<complex128> V3, const complex128 COUP);
 
 double sign(double x, double y);
 double signvec(double x, double y);
@@ -89,11 +90,11 @@ class MatrixOp : public OpKernel {
                                                      &output_tensor));
     auto output_flat = output_tensor->flat<double>();
 
-    matrix(all_ps, hel, *mdl_MT, *mdl_WT, *GC_10, GC_11);
+    matrix(all_ps, hel, *mdl_MT, *mdl_WT, *GC_10, *GC_11);
   }
 };
 
-Tensor matrix(const double* all_ps, const double* hel, const double mdl_MT, const double mdl_WT, const complex128 GC_10, const complex128* GC_11) {
+Tensor matrix(const double* all_ps, const double* hel, const double mdl_MT, const double mdl_WT, const complex128 GC_10, const complex128 GC_11) {
     int ngraphs = 3;
     int nwavefuncs = 5;
     int ncolor = 2;
@@ -127,9 +128,11 @@ Tensor matrix(const double* all_ps, const double* hel, const double mdl_MT, cons
         auto w2 = oxxxxx(all_ps_2, ZERO, hel[2], +1);
         auto w3 = ixxxxx(all_ps_3, mdl_MT, hel[3], -1);
         auto w4 = VVV1P0_1(w0, w1, GC_10, ZERO, ZERO);
+        
+        // Amplitude(s) for diagram number 1
+        
+        auto amp0 = FFV1_0(w3, w2, w4, GC_11);
         /*
-        w4= VVV1P0_1(w0,w1,GC_10,ZERO,ZERO)
-        # Amplitude(s) for diagram number 1
         amp0= FFV1_0(w3,w2,w4,GC_11)
         w4= FFV1_1(w2,w0,GC_11,mdl_MT,mdl_WT)
         # Amplitude(s) for diagram number 2
@@ -588,6 +591,14 @@ std::vector<complex128> VVV1P0_1(std::vector<complex128> V2, std::vector<complex
     V1[5]= denom * (TMP4 * (-cI*(P2[3]) + cI*(P3[3])) + (V2[5]*(-cI*(TMP0) + cI*(TMP1)) + V3[5]*(cI*(TMP2) - cI*(TMP3))));
     
     return V1;
+}
+
+complex128 FFV1_0(std::vector<complex128> F1, std::vector<complex128> F2, std::vector<complex128> V3, const complex128 COUP_comp) {
+    complex128 cI(0, 1);
+    complex128 COUP = COUP_comp;
+    complex128 TMP5 = (F1[2]*(F2[4]*(V3[2]+V3[5])+F2[5]*(V3[3]+cI*(V3[4])))+(F1[3]*(F2[4]*(V3[3]-cI*(V3[4]))+F2[5]*(V3[2]-V3[5]))+(F1[4]*(F2[2]*(V3[2]-V3[5])-F2[3]*(V3[3]+cI*(V3[4])))+F1[5]*(F2[2]*(-V3[3]+cI*(V3[4]))+F2[3]*(V3[2]+V3[5])))));
+    complex128 vertex = COUP*-cI * TMP5;
+    return vertex;
 }
 
 REGISTER_KERNEL_BUILDER(Name("Matrix").Device(DEVICE_CPU), MatrixOp);
