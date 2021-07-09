@@ -162,7 +162,7 @@ std::vector<double> matrix(const double* all_ps, const double* hel, const double
     for (int e = 0; e < nevents; e++) {
         for (int i = 0; i < 2; i++) {
             for (int j = 0; j < 2; j++) {
-                ret[e] = complex128(1,1);//jamp[i + e * nevents] * cf[i + j * 2] * std::conj(jamp[j + e * nevents]) / denom[e];
+                ret[e] = jamp[i + e * nevents] * cf[i + j * 2] * std::conj(jamp[j + e * nevents]) / denom[e];
             }
         }
     }

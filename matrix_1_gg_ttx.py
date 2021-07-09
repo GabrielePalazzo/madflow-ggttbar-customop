@@ -187,8 +187,7 @@ class Matrix_1_gg_ttx(object):
             ans += self.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11)
             ans2 += matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, ans2)
         
-        #with tf.compat.v1.Session() as sess:  print((ans2).eval())
-        print('Before return')
+        #print('Before return')
         return ans2/self.denominator
 
     @tf.function(input_signature=matrix_signature)
@@ -297,13 +296,11 @@ if __name__ == "__main__":
     inc_p2 = tf.concat([ea, zeros, zeros, -ea], axis=dim_ax)
 
     all_ps = tf.concat([inc_p1, inc_p2, outgoing_4m], axis=par_ax)
-    #print(all_ps) # Aggiunto 
+    
     model_params.freeze_alpha_s(0.118)
-    print('Before the call to smatrix', all_ps)
+    #print('Before the call to smatrix', all_ps)
     wgt_set = matrix.smatrix(all_ps, *model_params.evaluate(None))
-    print('After having called smatrix')
-    #matrixOp = tf.load_op_library('./matrix.so')
-    #matrixOp.matrix(all_ps)
+    #print('After having called smatrix')
     print("All good!")
     for i, (p, wgt) in enumerate(zip(all_ps, wgt_set)):
         print(f"\n#{i} ME value: {wgt.numpy():.3e} for P set:\n{p.numpy()}")
