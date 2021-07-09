@@ -99,10 +99,7 @@ class MatrixOp : public OpKernel {
     
     for (int i = 0; i < nevents; i++) {
       output_flat(i) = matrixElement[i];
-    }/*
-    for (int i = 0; i < nevents; i++) {
-      output_flat(i) = all_ps[i];
-    }*/
+    }
   }
 };
 
@@ -157,15 +154,15 @@ std::vector<double> matrix(const double* all_ps, const double* hel, const double
         
         auto amp2 = FFV1_0(w4, w2, w1, GC_11);
         
-        jamp[0 + 2 * nevents] =  complex128(0, 1) * amp0 - amp1;
-        jamp[1 + 2 * nevents] = -complex128(0, 1) * amp0 - amp2;
+        jamp[0 + i * nevents] =  complex128(0, 1) * amp0 - amp1;
+        jamp[1 + i * nevents] = -complex128(0, 1) * amp0 - amp2;
     }
     
     std::vector<complex128> ret(2, complex128(0,0));
     for (int e = 0; e < nevents; e++) {
         for (int i = 0; i < 2; i++) {
             for (int j = 0; j < 2; j++) {
-                ret[e] = jamp[i + e * nevents] * cf[i + j * 2] * std::conj(jamp[j + e * nevents]) / denom[e];
+                ret[e] = complex128(1,1);//jamp[i + e * nevents] * cf[i + j * 2] * std::conj(jamp[j + e * nevents]) / denom[e];
             }
         }
     }
@@ -174,7 +171,7 @@ std::vector<double> matrix(const double* all_ps, const double* hel, const double
     for (int e = 0; e < nevents; e++) {
         ret_re[e] = ret[e].real();
     }
-    return ret_re; // dummy tensor
+    return ret_re;
 }
 
 std::vector<complex128> _ix_massive(double* p, double fmass, double nsf, double nh) {

@@ -60,9 +60,8 @@ $(TARGET_LIB_CUDA): $(OBJECT_SRCS_CUDA)
 #	$(NVCC) -std=c++11 -c kernel_example.cu.cc $(CUDA_LFLAGS) -o kernel_example.cu.o
 #	$(CXX) -std=c++11 -I $(PATH_TO_INCLUDE) -shared kernel_example.cc kernel_example.cu.o kernel_example.h $(CUDA_LIB) -lcudart -o kernel_example.so -fPIC $(TF_CFLAGS) $(TF_LFLAGS) -O2
 
-test: all zero_out_test.py kernel_example_test.py
-	python3 zero_out_test.py
-	python3 kernel_example_test.py
+test: all matrix_1_gg_ttx.py
+	python3 matrix_1_gg_ttx.py
 
 clean:
 	rm -f $(TARGETS) $(OBJECT_SRCS) $(OBJECT_SRCS_CUDA)
