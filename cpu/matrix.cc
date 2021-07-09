@@ -17,16 +17,17 @@ REGISTER_OP("Matrix")
     .Input("mdl_wt: double")
     .Input("gc_10: complex128")
     .Input("gc_11: complex128")
-    .Output("zeroed: double")
+    .Input("correct_shape: double")
+    .Output("matrix_element: double")
     .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
-      c->set_output(0, c->input(0));
+      c->set_output(0, c->input(6));
       return Status::OK();
     });
 
 int nevents = 2;
 double SQH = sqrt(0.5);
 complex128 CZERO = complex128(0.0, 0.0);
-Tensor matrix(const double*, const double*, const double, const double, const complex128, const complex128);
+std::vector<double> matrix(const double*, const double*, const double, const double, const complex128, const complex128);
 std::vector<complex128> vxxxxx(double* p, double fmass, double nhel, double nsf);
 std::vector<complex128> ixxxxx(double* p, double fmass, double nhel, double nsf);
 std::vector<complex128> oxxxxx(double* p, double fmass, double nhel, double nsf);
@@ -85,34 +86,45 @@ class MatrixOp : public OpKernel {
     
     const Tensor& GC_11_tensor = context->input(5);
     auto GC_11 = GC_11_tensor.flat<complex128>().data();
+    
+    const Tensor& correct_shape = context->input(6);
 
     // Create an output tensor
     Tensor* output_tensor = NULL;
-    OP_REQUIRES_OK(context, context->allocate_output(0, all_ps_tensor.shape(),
+    OP_REQUIRES_OK(context, context->allocate_output(0, correct_shape.shape(),
                                                      &output_tensor));
     auto output_flat = output_tensor->flat<double>();
 
-    matrix(all_ps, hel, *mdl_MT, *mdl_WT, *GC_10, *GC_11);
+    auto matrixElement = matrix(all_ps, hel, *mdl_MT, *mdl_WT, *GC_10, *GC_11);
+    
+    for (int i = 0; i < nevents; i++) {
+      output_flat(i) = matrixElement[i];
+    }/*
+    for (int i = 0; i < nevents; i++) {
+      output_flat(i) = all_ps[i];
+    }*/
   }
 };
 
-Tensor matrix(const double* all_ps, const double* hel, const double mdl_MT, const double mdl_WT, const complex128 GC_10, const complex128 GC_11) {
+std::vector<double> matrix(const double* all_ps, const double* hel, const double mdl_MT, const double mdl_WT, const complex128 GC_10, const complex128 GC_11) {
     int ngraphs = 3;
     int nwavefuncs = 5;
     int ncolor = 2;
     double ZERO = 0.;
     
-    Tensor denom = Tensor(DT_COMPLEX128);
-    denom.vec<complex128>()(0) = 3;
-    denom.vec<complex128>()(1) = 3;
+    std::vector<complex128> denom(2, complex128(0,0));
+    denom[0] = 3;
+    denom[1] = 3;
     
-    Tensor cf = Tensor(DT_COMPLEX128, TensorShape ({2,2}));
-    cf.vec<complex128>()(0) = 16;
-    cf.vec<complex128>()(1) = -2;
-    cf.vec<complex128>()(2) = -2;
-    cf.vec<complex128>()(3) = 16;
+    std::vector<complex128> cf(4, complex128(0,0));
+    cf[0] = 16;
+    cf[1] = -2;
+    cf[2] = -2;
+    cf[3] = 16;
     
     // Begin code
+    
+    std::vector<complex128> jamp(2 * nevents, complex128(0,0));
     
     for (int i = 0; i < nevents; i++) {
         double all_ps_0[4];
@@ -144,14 +156,25 @@ Tensor matrix(const double* all_ps, const double* hel, const double mdl_MT, cons
         // Amplitude(s) for diagram number 3
         
         auto amp2 = FFV1_0(w4, w2, w1, GC_11);
-
-        /*jamp = tf.stack([complex_tf(0,1)*amp0-amp1,-complex(0,1)*amp0-amp2], axis=0)
-
-        ret = tf.einsum("ie, ij, je -> e", jamp, cf, tf.math.conj(jamp)/tf.reshape(denom, (ncolor, 1)))
-        return tf.math.real(ret)*/
+        
+        jamp[0 + 2 * nevents] =  complex128(0, 1) * amp0 - amp1;
+        jamp[1 + 2 * nevents] = -complex128(0, 1) * amp0 - amp2;
     }
     
-    return Tensor(); // dummy tensor
+    std::vector<complex128> ret(2, complex128(0,0));
+    for (int e = 0; e < nevents; e++) {
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                ret[e] = jamp[i + e * nevents] * cf[i + j * 2] * std::conj(jamp[j + e * nevents]) / denom[e];
+            }
+        }
+    }
+    
+    std::vector<double> ret_re(2, double(0));
+    for (int e = 0; e < nevents; e++) {
+        ret_re[e] = ret[e].real();
+    }
+    return ret_re; // dummy tensor
 }
 
 std::vector<complex128> _ix_massive(double* p, double fmass, double nsf, double nh) {

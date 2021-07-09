@@ -182,16 +182,14 @@ class Matrix_1_gg_ttx(object):
         nevts = tf.shape(all_ps, out_type=DTYPEINT)[0]
         ans = tf.zeros(nevts, dtype=DTYPE)
         matrixOp = tf.load_op_library('./matrix.so')
-        #ans2 = tf.zeros(nevts, dtype=DTYPE)
+        ans2 = tf.zeros(nevts, dtype=DTYPE)
         for hel in self.helicities:
             ans += self.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11)
-            #print(ans,hel,mdl_MT,mdl_WT,GC_10,GC_11)
-            #print(mdl_MT.get_shape())
-            #print(mdl_MT, matrixOp.matrix(all_ps, hel))
-            #ans2 += matrixOp.matrix(all_ps)
-            matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11)
-            #print(ans, self.helicities, hel, matrixOp.matrix(all_ps, hel))
-        return ans/self.denominator
+            ans2 += matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, ans2)
+        
+        #with tf.compat.v1.Session() as sess:  print((ans2).eval())
+        print('Before return')
+        return ans2/self.denominator
 
     @tf.function(input_signature=matrix_signature)
     def matrix(self,all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11):
@@ -301,7 +299,9 @@ if __name__ == "__main__":
     all_ps = tf.concat([inc_p1, inc_p2, outgoing_4m], axis=par_ax)
     #print(all_ps) # Aggiunto 
     model_params.freeze_alpha_s(0.118)
+    print('Before the call to smatrix', all_ps)
     wgt_set = matrix.smatrix(all_ps, *model_params.evaluate(None))
+    print('After having called smatrix')
     #matrixOp = tf.load_op_library('./matrix.so')
     #matrixOp.matrix(all_ps)
     print("All good!")
