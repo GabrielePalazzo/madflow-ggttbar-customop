@@ -56,6 +56,7 @@ std::vector<complex128> _vx_no_BRST_check_massless_pt_zero(double* p, double nhe
 
 std::vector<complex128> VVV1P0_1(std::vector<complex128> V2, std::vector<complex128> V3, const complex128 COUP, double M1, double W1);
 complex128 FFV1_0(std::vector<complex128> F1, std::vector<complex128> F2, std::vector<complex128> V3, const complex128 COUP);
+std::vector<complex128> FFV1_1(std::vector<complex128> F2, std::vector<complex128> V3, const complex128 COUP_compCOUP, double M1, double W1);
 
 double sign(double x, double y);
 double signvec(double x, double y);
@@ -132,6 +133,7 @@ Tensor matrix(const double* all_ps, const double* hel, const double mdl_MT, cons
         // Amplitude(s) for diagram number 1
         
         auto amp0 = FFV1_0(w3, w2, w4, GC_11);
+        w4 = FFV1_1(w2, w0, GC_11, mdl_MT, mdl_WT);
         /*
         amp0= FFV1_0(w3,w2,w4,GC_11)
         w4= FFV1_1(w2,w0,GC_11,mdl_MT,mdl_WT)
@@ -599,6 +601,32 @@ complex128 FFV1_0(std::vector<complex128> F1, std::vector<complex128> F2, std::v
     complex128 TMP5 = (F1[2]*(F2[4]*(V3[2]+V3[5])+F2[5]*(V3[3]+cI*(V3[4])))+(F1[3]*(F2[4]*(V3[3]-cI*(V3[4]))+F2[5]*(V3[2]-V3[5]))+(F1[4]*(F2[2]*(V3[2]-V3[5])-F2[3]*(V3[3]+cI*(V3[4])))+F1[5]*(F2[2]*(-V3[3]+cI*(V3[4]))+F2[3]*(V3[2]+V3[5])))));
     complex128 vertex = COUP*-cI * TMP5;
     return vertex;
+}
+
+std::vector<complex128> FFV1_1(std::vector<complex128> F2, std::vector<complex128> V3, const complex128 COUP_comp, double M1_double, double W1_double) {
+    complex128 cI(0, 1);
+    complex128 M1 = M1_double;
+    complex128 W1 = W1_double;
+    complex128 COUP = COUP_comp;
+    
+    std::vector<complex128> F1(6, complex128(0,0));
+    F1[0] = F2[0] + V3[0];
+    F1[1] = F2[1] + V3[1];
+    
+    std::vector<complex128> P1(4, complex128(0,0));
+    P1[0] = complex128(-F1[0].real(), 0.0);
+    P1[1] = complex128(-F1[1].real(), 0.0);
+    P1[2] = complex128(-F1[1].imag(), 0.0);
+    P1[3] = complex128(-F1[0].imag(), 0.0);
+    
+    complex128 denom = COUP/(P1[0]*P1[0] - P1[1]*P1[1] - P1[2]*P1[2] - P1[3]*P1[3] - M1 * (M1 -cI* W1));
+    
+    F1[2]= denom*cI*(F2[2]*(P1[0]*(-V3[2]+V3[5])+(P1[1]*(V3[3]-cI*(V3[4]))+(P1[2]*(cI*(V3[3])+V3[4])+P1[3]*(-V3[2]+V3[5]))))+(F2[3]*(P1[0]*(V3[3]+cI*(V3[4]))+(P1[1]*(-1./1.)*(V3[2]+V3[5])+(P1[2]*(-1./1.)*(cI*(V3[2]+V3[5]))+P1[3]*(V3[3]+cI*(V3[4])))))+M1*(F2[4]*(V3[2]+V3[5])+F2[5]*(V3[3]+cI*(V3[4])))));
+    F1[3]= denom*(-cI)*(F2[2]*(P1[0]*(-V3[3]+cI*(V3[4]))+(P1[1]*(V3[2]-V3[5])+(P1[2]*(-cI*(V3[2])+cI*(V3[5]))+P1[3]*(V3[3]-cI*(V3[4])))))+(F2[3]*(P1[0]*(V3[2]+V3[5])+(P1[1]*(-1./1.)*(V3[3]+cI*(V3[4]))+(P1[2]*(cI*(V3[3])-V3[4])-P1[3]*(V3[2]+V3[5]))))+M1*(F2[4]*(-V3[3]+cI*(V3[4]))+F2[5]*(-V3[2]+V3[5]))));
+    F1[4]= denom*(-cI)*(F2[4]*(P1[0]*(V3[2]+V3[5])+(P1[1]*(-V3[3]+cI*(V3[4]))+(P1[2]*(-1./1.)*(cI*(V3[3])+V3[4])-P1[3]*(V3[2]+V3[5]))))+(F2[5]*(P1[0]*(V3[3]+cI*(V3[4]))+(P1[1]*(-V3[2]+V3[5])+(P1[2]*(-cI*(V3[2])+cI*(V3[5]))-P1[3]*(V3[3]+cI*(V3[4])))))+M1*(F2[2]*(-V3[2]+V3[5])+F2[3]*(V3[3]+cI*(V3[4])))));
+    F1[5]= denom*cI*(F2[4]*(P1[0]*(-V3[3]+cI*(V3[4]))+(P1[1]*(V3[2]+V3[5])+(P1[2]*(-1./1.)*(cI*(V3[2]+V3[5]))+P1[3]*(-V3[3]+cI*(V3[4])))))+(F2[5]*(P1[0]*(-V3[2]+V3[5])+(P1[1]*(V3[3]+cI*(V3[4]))+(P1[2]*(-cI*(V3[3])+V3[4])+P1[3]*(-V3[2]+V3[5]))))+M1*(F2[2]*(-V3[3]+cI*(V3[4]))+F2[3]*(V3[2]+V3[5]))));
+    
+    return F1;
 }
 
 REGISTER_KERNEL_BUILDER(Name("Matrix").Device(DEVICE_CPU), MatrixOp);
