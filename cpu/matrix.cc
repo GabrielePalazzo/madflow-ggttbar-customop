@@ -26,7 +26,7 @@ REGISTER_OP("Matrix")
 int nevents = 2;
 double SQH = sqrt(0.5);
 complex128 CZERO = complex128(0.0, 0.0);
-Tensor matrix(const double*, const double*, const double, const double, const complex128*, const complex128*);
+Tensor matrix(const double*, const double*, const double, const double, const complex128, const complex128*);
 std::vector<complex128> vxxxxx(double* p, double fmass, double nhel, double nsf);
 std::vector<complex128> ixxxxx(double* p, double fmass, double nhel, double nsf);
 std::vector<complex128> oxxxxx(double* p, double fmass, double nhel, double nsf);
@@ -53,6 +53,9 @@ std::vector<complex128> _vx_no_BRST_check_massive_pp_nonzero_pt_zero(double* p, 
 std::vector<complex128> _vx_no_BRST_check_massless(double* p, double nhel, double nsv);
 std::vector<complex128> _vx_no_BRST_check_massless_pt_nonzero(double* p, double nhel, double nsv, double pp, double pt);
 std::vector<complex128> _vx_no_BRST_check_massless_pt_zero(double* p, double nhel, double nsv);
+
+std::vector<complex128> VVV1P0_1(std::vector<complex128> V2, std::vector<complex128> V3, const complex128 COUP, double M1, double W1);
+
 double sign(double x, double y);
 double signvec(double x, double y);
     
@@ -86,11 +89,11 @@ class MatrixOp : public OpKernel {
                                                      &output_tensor));
     auto output_flat = output_tensor->flat<double>();
 
-    matrix(all_ps, hel, *mdl_MT, *mdl_WT, GC_10, GC_11);
+    matrix(all_ps, hel, *mdl_MT, *mdl_WT, *GC_10, GC_11);
   }
 };
 
-Tensor matrix(const double* all_ps, const double* hel, const double mdl_MT, const double mdl_WT, const complex128* GC_10, const complex128* GC_11) {
+Tensor matrix(const double* all_ps, const double* hel, const double mdl_MT, const double mdl_WT, const complex128 GC_10, const complex128* GC_11) {
     int ngraphs = 3;
     int nwavefuncs = 5;
     int ncolor = 2;
@@ -123,11 +126,22 @@ Tensor matrix(const double* all_ps, const double* hel, const double mdl_MT, cons
         auto w1 = vxxxxx(all_ps_1, ZERO, hel[1], -1);
         auto w2 = oxxxxx(all_ps_2, ZERO, hel[2], +1);
         auto w3 = ixxxxx(all_ps_3, mdl_MT, hel[3], -1);
-        //Tensor w0 = vxxxxx(all_ps[:,0],ZERO,hel[0],-1)
-        //w1 = vxxxxx(all_ps[:,1],ZERO,hel[1],float_me(-1))
-        //w2 = oxxxxx(all_ps[:,2],mdl_MT,hel[2],float_me(+1))
-        //w3 = ixxxxx(all_ps[:,3],mdl_MT,hel[3],float_me(-1))
-        //w4= VVV1P0_1(w0,w1,GC_10,ZERO,ZERO)
+        auto w4 = VVV1P0_1(w0, w1, GC_10, ZERO, ZERO);
+        /*
+        w4= VVV1P0_1(w0,w1,GC_10,ZERO,ZERO)
+        # Amplitude(s) for diagram number 1
+        amp0= FFV1_0(w3,w2,w4,GC_11)
+        w4= FFV1_1(w2,w0,GC_11,mdl_MT,mdl_WT)
+        # Amplitude(s) for diagram number 2
+        amp1= FFV1_0(w3,w4,w1,GC_11)
+        w4= FFV1_2(w3,w0,GC_11,mdl_MT,mdl_WT)
+        # Amplitude(s) for diagram number 3
+        amp2= FFV1_0(w4,w2,w1,GC_11)
+
+        jamp = tf.stack([complex_tf(0,1)*amp0-amp1,-complex(0,1)*amp0-amp2], axis=0)
+
+        ret = tf.einsum("ie, ij, je -> e", jamp, cf, tf.math.conj(jamp)/tf.reshape(denom, (ncolor, 1)))
+        return tf.math.real(ret)*/
     }
     
     return Tensor(); // dummy tensor
@@ -502,16 +516,7 @@ std::vector<complex128> ixxxxx(double* p, double fmass, double nhel, double nsf)
         ret[i+2] = v[i];
     
     return ret;
-}/*
-    """
-
-    massive = fmass != 0
-    v = tf.cond(massive,
-                lambda: _ix_massive(p, fmass, nsf, nh),
-                lambda: _ix_massless(p, nhel, nsf, nh)
-               )
-    fi = tf.concat([v0, v1, v], axis=1)
-    return tf.transpose(fi)*/
+}
 
 std::vector<complex128> oxxxxx(double* p, double fmass, double nhel, double nsf) {
     complex128 v0 = complex128(p[0] * nsf, p[3] * nsf);
@@ -535,6 +540,54 @@ std::vector<complex128> oxxxxx(double* p, double fmass, double nhel, double nsf)
         ret[i+2] = v[i];
     
     return ret;
+}
+
+std::vector<complex128> VVV1P0_1(std::vector<complex128> V2, std::vector<complex128> V3, const complex128 COUP_comp, double M1_double, double W1_double) {
+    
+    // V2 -> 6-component vector
+    // V3 -> 6-component vector
+    
+    complex128 cI(0, 1);
+    complex128 M1 = M1_double;
+    complex128 W1 = W1_double;
+    complex128 COUP = COUP_comp;
+    
+    std::vector<complex128> P2(4, complex128(0,0));
+    P2[0] = complex128(V2[0].real(), 0.0);
+    P2[1] = complex128(V2[1].real(), 0.0);
+    P2[2] = complex128(V2[1].imag(), 0.0);
+    P2[3] = complex128(V2[0].imag(), 0.0);
+    
+    std::vector<complex128> P3(4, complex128(0,0));
+    P3[0] = complex128(V3[0].real(), 0.0);
+    P3[1] = complex128(V3[1].real(), 0.0);
+    P3[2] = complex128(V3[1].imag(), 0.0);
+    P3[3] = complex128(V3[0].imag(), 0.0);
+    
+    std::vector<complex128> V1(6, complex128(0,0));
+    V1[0] = V2[0] + V3[0];
+    V1[1] = V2[1] + V3[1];
+    
+    std::vector<complex128> P1(4, complex128(0,0));
+    P1[0] = complex128(-V1[0].real(), 0.0);
+    P1[1] = complex128(-V1[1].real(), 0.0);
+    P1[2] = complex128(-V1[1].imag(), 0.0);
+    P1[3] = complex128(-V1[0].imag(), 0.0);
+    
+    complex128 TMP0 = (V3[2]*P1[0] - V3[3]*P1[1] - V3[4]*P1[2] - V3[5]*P1[3]);
+    complex128 TMP1 = (V3[2]*P2[0] - V3[3]*P2[1] - V3[4]*P2[2] - V3[5]*P2[3]);
+    complex128 TMP2 = (P1[0]*V2[2] - P1[1]*V2[3] - P1[2]*V2[4] - P1[3]*V2[5]);
+    complex128 TMP3 = (V2[2]*P3[0] - V2[3]*P3[1] - V2[4]*P3[2] - V2[5]*P3[3]);
+    complex128 TMP4 = (V3[2]*V2[2] - V3[3]*V2[3] - V3[4]*V2[4] - V3[5]*V2[5]);
+    
+    complex128 denom = COUP/(P1[0]*P1[0] - P1[1]*P1[1] - P1[2]*P1[2] - P1[3]*P1[3] - M1 * (M1 -cI* W1));
+    
+    V1[2]= denom * (TMP4 * (-cI*(P2[0]) + cI*(P3[0])) + (V2[2]*(-cI*(TMP0) + cI*(TMP1)) + V3[2]*(cI*(TMP2) - cI*(TMP3))));
+    V1[3]= denom * (TMP4 * (-cI*(P2[1]) + cI*(P3[1])) + (V2[3]*(-cI*(TMP0) + cI*(TMP1)) + V3[3]*(cI*(TMP2) - cI*(TMP3))));
+    V1[4]= denom * (TMP4 * (-cI*(P2[2]) + cI*(P3[2])) + (V2[4]*(-cI*(TMP0) + cI*(TMP1)) + V3[4]*(cI*(TMP2) - cI*(TMP3))));
+    V1[5]= denom * (TMP4 * (-cI*(P2[3]) + cI*(P3[3])) + (V2[5]*(-cI*(TMP0) + cI*(TMP1)) + V3[5]*(cI*(TMP2) - cI*(TMP3))));
+    
+    return V1;
 }
 
 REGISTER_KERNEL_BUILDER(Name("Matrix").Device(DEVICE_CPU), MatrixOp);
