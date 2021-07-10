@@ -8,6 +8,8 @@
 
 using namespace tensorflow;
 
+#define USE_PYTHON 0
+
 // mdl_MT,mdl_WT,GC_10,GC_11
 
 REGISTER_OP("Matrix")
@@ -970,7 +972,6 @@ REGISTER_OP("Vvv1p01")
       return Status::OK();
     });
 
-
 //std::vector<complex128> VVV1P0_1(std::vector<complex128> V2, std::vector<complex128> V3, const complex128 COUP_comp, double M1_double, double W1_double)
 class Vvv1p01Op : public OpKernel {
  public:
@@ -1014,7 +1015,7 @@ class Vvv1p01Op : public OpKernel {
     int output_slice_size = 6;
     std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
     
-    
+#if USE_PYTHON==1
     for (int i = 0; i < nevents; i++) {
         std::vector<complex128> V2(output_slice_size, complex128(0,0));
         std::vector<complex128> V3(output_slice_size, complex128(0,0));
@@ -1033,7 +1034,7 @@ class Vvv1p01Op : public OpKernel {
     for (int i = 0; i < output_slice_size * nevents; i++) {
       output_flat(i) = jamp[i];
     }
-    /*
+#else
     // Alternative way using all the Custom Op functions
     double ZERO = 0;
     
@@ -1061,11 +1062,133 @@ class Vvv1p01Op : public OpKernel {
     
     for (int i = 0; i < output_slice_size * nevents; i++) {
       output_flat(i) = jamp[i];
-    }*/
+    }
+#endif
   }
 };
 
 REGISTER_KERNEL_BUILDER(Name("Vvv1p01").Device(DEVICE_CPU), Vvv1p01Op);
+
+REGISTER_OP("Ffv10")
+    .Input("all_ps: double")
+    .Input("vmass: double")
+    .Input("w3: complex128")
+    .Input("w2: complex128")
+    .Input("w4: complex128")
+    .Input("coup0: complex128")
+    .Input("coup1: complex128")
+    .Input("mdl_mt: double")
+    .Input("correct_shape: complex128")
+    .Output("vx: complex128")
+    .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
+      c->set_output(0, c->input(9));
+      return Status::OK();
+    });
+
+//camp0 = MatrixOp.ffv10(all_ps, hel, w3, w2, w4, GC_10, GC_11, mdl_MT, pw4)
+//complex128 FFV1_0(std::vector<complex128> F1, std::vector<complex128> F2, std::vector<complex128> V3, const complex128 COUP_comp)
+class Ffv10Op : public OpKernel {
+ public:
+  explicit Ffv10Op(OpKernelConstruction* context) : OpKernel(context) {}
+
+  void Compute(OpKernelContext* context) override {
+    // Grab the input tensor
+    const Tensor& all_ps_tensor = context->input(0);
+    auto all_ps = all_ps_tensor.flat<double>().data();
+    
+    const Tensor& hel_tensor = context->input(1);
+    auto hel = hel_tensor.flat<double>().data();
+    
+    const Tensor& w3_tensor = context->input(2);
+    auto w3_v = w3_tensor.flat<complex128>().data();
+    
+    const Tensor& w2_tensor = context->input(3);
+    auto w2_v = w2_tensor.flat<complex128>().data();
+    
+    const Tensor& w4_tensor = context->input(4);
+    auto w4_v = w4_tensor.flat<complex128>().data();
+    
+    const Tensor& COUP0_tensor = context->input(5);
+    auto COUP0 = COUP0_tensor.flat<complex128>().data();
+    
+    const Tensor& COUP1_tensor = context->input(6);
+    auto COUP1 = COUP1_tensor.flat<complex128>().data();
+    
+    const Tensor& mdl_MT_tensor = context->input(7);
+    auto mdl_MT = mdl_MT_tensor.flat<double>().data();
+    
+    const Tensor& correct_shape = context->input(8);
+
+    // Create an output tensor
+    Tensor* output_tensor = NULL;
+    OP_REQUIRES_OK(context, context->allocate_output(0, correct_shape.shape(),
+                                                     &output_tensor));
+    auto output_flat = output_tensor->flat<complex128>();
+    
+    // Begin code
+    int output_slice_size = 1;
+    int vector_slice_size = 6;
+    std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
+    
+    double ZERO = 0;
+#if USE_PYTHON==1
+    for (int i = 0; i < nevents; i++) {
+        std::vector<complex128> w2(vector_slice_size, complex128(0,0));
+        std::vector<complex128> w3(vector_slice_size, complex128(0,0));
+        std::vector<complex128> w4(vector_slice_size, complex128(0,0));
+        
+        for (int j = 0; j < vector_slice_size; j++) {
+            w2[j] = w2_v[j * nevents + i];
+            w3[j] = w3_v[j * nevents + i];
+            w4[j] = w4_v[j * nevents + i];
+        }
+        auto amp0 = FFV1_0(w3, w2, w4, *COUP1);
+        
+        for (int j = 0; j < output_slice_size; j++) {
+            jamp[j * nevents + i] = amp0;
+        }
+    }
+    
+    for (int i = 0; i < output_slice_size * nevents; i++) {
+      output_flat(i) = jamp[i];
+    }
+#else
+    // Alternative way using all the Custom Op functions
+    
+    for (int i = 0; i < nevents; i++) {
+        double all_ps_0[4];
+        double all_ps_1[4];
+        double all_ps_2[4];
+        double all_ps_3[4];
+        for (int j = 0; j < 4; j++) {
+            all_ps_0[j] = all_ps[16 * i + j];
+            all_ps_1[j] = all_ps[16 * i + j + 4];
+            all_ps_2[j] = all_ps[16 * i + j + 8];
+            all_ps_3[j] = all_ps[16 * i + j + 12];
+        } 
+        auto w0 = vxxxxx(all_ps_0, ZERO, hel[0], -1);
+        auto w1 = vxxxxx(all_ps_1, ZERO, hel[1], -1);
+        auto w2 = oxxxxx(all_ps_2, ZERO, hel[2], +1);
+        auto w3 = ixxxxx(all_ps_3, *mdl_MT, hel[3], -1);
+        auto w4 = VVV1P0_1(w0, w1, *COUP0, ZERO, ZERO);
+        
+        // Amplitude(s) for diagram number 1
+        
+        auto amp0 = FFV1_0(w3, w2, w4, *COUP1);
+        
+        for (int j = 0; j < output_slice_size; j++) {
+            jamp[j * nevents + i] = amp0;
+        }
+    }
+    
+    for (int i = 0; i < output_slice_size * nevents; i++) {
+      output_flat(i) = jamp[i];
+    }
+#endif
+  }
+};
+
+REGISTER_KERNEL_BUILDER(Name("Ffv10").Device(DEVICE_CPU), Ffv10Op);
 
 /*
 End
