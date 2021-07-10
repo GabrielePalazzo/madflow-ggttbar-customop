@@ -616,11 +616,6 @@ std::vector<complex128> VVV1P0_1(std::vector<complex128> V2, std::vector<complex
     V1[4]= denom * (TMP4 * (-cI*(P2[2]) + cI*(P3[2])) + (V2[4]*(-cI*(TMP0) + cI*(TMP1)) + V3[4]*(cI*(TMP2) - cI*(TMP3))));
     V1[5]= denom * (TMP4 * (-cI*(P2[3]) + cI*(P3[3])) + (V2[5]*(-cI*(TMP0) + cI*(TMP1)) + V3[5]*(cI*(TMP2) - cI*(TMP3))));
     
-    V1[2]= M1;
-    V1[3]= M1 * (M1 -cI* W1);
-    V1[4]= (P1[0]*P1[0] - P1[1]*P1[1] - P1[2]*P1[2] - P1[3]*P1[3] - M1 * (M1 -cI* W1));
-    V1[5]= COUP;
-    
     return V1;
 }
 
@@ -960,15 +955,18 @@ class VxnobrstcheckOp : public OpKernel {
 REGISTER_KERNEL_BUILDER(Name("Vxnobrstcheck").Device(DEVICE_CPU), VxnobrstcheckOp);
 
 REGISTER_OP("Vvv1p01")
+    .Input("all_ps: double")
+    .Input("vmass: double")
     .Input("v2: complex128")
     .Input("v3: complex128")
     .Input("coup: complex128")
     .Input("m1: double")
     .Input("w1: double")
+    .Input("mdl_mt: double")
     .Input("correct_shape: complex128")
     .Output("vx: complex128")
     .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
-      c->set_output(0, c->input(5));
+      c->set_output(0, c->input(8));
       return Status::OK();
     });
 
@@ -980,22 +978,31 @@ class Vvv1p01Op : public OpKernel {
 
   void Compute(OpKernelContext* context) override {
     // Grab the input tensor
-    const Tensor& V2_tensor = context->input(0);
+    const Tensor& all_ps_tensor = context->input(0);
+    auto all_ps = all_ps_tensor.flat<double>().data();
+    
+    const Tensor& hel_tensor = context->input(1);
+    auto hel = hel_tensor.flat<double>().data();
+    
+    const Tensor& V2_tensor = context->input(2);
     auto V2_v = V2_tensor.flat<complex128>().data();
     
-    const Tensor& V3_tensor = context->input(1);
+    const Tensor& V3_tensor = context->input(3);
     auto V3_v = V3_tensor.flat<complex128>().data();
     
-    const Tensor& COUP_tensor = context->input(2);
+    const Tensor& COUP_tensor = context->input(4);
     auto COUP = COUP_tensor.flat<complex128>().data();
     
-    const Tensor& M1_tensor = context->input(3);
+    const Tensor& M1_tensor = context->input(5);
     auto M1 = M1_tensor.flat<double>().data();
     
-    const Tensor& W1_tensor = context->input(4);
+    const Tensor& W1_tensor = context->input(6);
     auto W1 = W1_tensor.flat<double>().data();
     
-    const Tensor& correct_shape = context->input(5);
+    const Tensor& mdl_MT_tensor = context->input(7);
+    auto mdl_MT = mdl_MT_tensor.flat<double>().data();
+    
+    const Tensor& correct_shape = context->input(8);
 
     // Create an output tensor
     Tensor* output_tensor = NULL;
@@ -1013,19 +1020,48 @@ class Vvv1p01Op : public OpKernel {
         std::vector<complex128> V3(output_slice_size, complex128(0,0));
         
         for (int j = 0; j < output_slice_size; j++) {
-            V2[j] = V2_v[j + i * output_slice_size];
-            V3[j] = V3_v[j + i * output_slice_size];
+            V2[j] = V2_v[j * nevents + i];
+            V3[j] = V3_v[j * nevents + i];
         }
         auto w4 = VVV1P0_1(V2, V3, *COUP, *M1, *W1);
         
         for (int j = 0; j < output_slice_size; j++) {
-            jamp[i * output_slice_size + j] = w4[j];
+            jamp[j * nevents + i] = w4[j];
         }
     }
     
     for (int i = 0; i < output_slice_size * nevents; i++) {
       output_flat(i) = jamp[i];
     }
+    /*
+    // Alternative way using all the Custom Op functions
+    double ZERO = 0;
+    
+    for (int i = 0; i < nevents; i++) {
+        double all_ps_0[4];
+        double all_ps_1[4];
+        double all_ps_2[4];
+        double all_ps_3[4];
+        for (int j = 0; j < 4; j++) {
+            all_ps_0[j] = all_ps[16 * i + j];
+            all_ps_1[j] = all_ps[16 * i + j + 4];
+            all_ps_2[j] = all_ps[16 * i + j + 8];
+            all_ps_3[j] = all_ps[16 * i + j + 12];
+        } 
+        auto w0 = vxxxxx(all_ps_0, ZERO, hel[0], -1);
+        auto w1 = vxxxxx(all_ps_1, ZERO, hel[1], -1);
+        auto w2 = oxxxxx(all_ps_2, ZERO, hel[2], +1);
+        auto w3 = ixxxxx(all_ps_3, *mdl_MT, hel[3], -1);
+        auto w4 = VVV1P0_1(w0, w1, *COUP, ZERO, ZERO);
+        
+        for (int j = 0; j < output_slice_size; j++) {
+            jamp[j * nevents + i] = w4[j];
+        }
+    }
+    
+    for (int i = 0; i < output_slice_size * nevents; i++) {
+      output_flat(i) = jamp[i];
+    }*/
   }
 };
 

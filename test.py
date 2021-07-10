@@ -157,15 +157,14 @@ def vxnobrstchecktest(all_ps, hel, MatrixOp):
 def vvv1p0_1test(all_ps, hel, mdl_MT, GC_10, MatrixOp):
     print("Testing VVV1P0_1...")
     
+    ZERO = float_me(0.)
     w0 = vxxxxx(all_ps[:,0],ZERO,hel[0],float_me(-1))
     w1 = vxxxxx(all_ps[:,1],ZERO,hel[1],float_me(-1))
     w2 = oxxxxx(all_ps[:,2],mdl_MT,hel[2],float_me(+1))
     w3 = ixxxxx(all_ps[:,3],mdl_MT,hel[3],float_me(-1))
     pw4= VVV1P0_1(w0, w1, GC_10, ZERO, ZERO)
-    cw4 = MatrixOp.vvv1p01(w0, w1, GC_10, ZERO, ZERO, pw4)
-    print(pw4, cw4)
-    print(pw4 == cw4)
-    #areclose(pw4, cw4)
+    cw4 = MatrixOp.vvv1p01(all_ps, hel, w0, w1, GC_10, ZERO, ZERO, mdl_MT, pw4)
+    areclose(pw4, cw4)
     
     
 if __name__ == "__main__":
@@ -260,9 +259,10 @@ if __name__ == "__main__":
     
     #vxnobrstchecktest(all_ps, hel, MatrixOp)
     vxxxxxtest(all_ps, ZERO, hel, float_me(-1), MatrixOp)
-    oxxxxxtest(all_ps, ZERO, hel, float_me(+1), MatrixOp)
-    ixxxxxtest(all_ps, ZERO, hel, float_me(-1), MatrixOp)
+    oxxxxxtest(all_ps, mdl_MT, hel, float_me(+1), MatrixOp)
+    ixxxxxtest(all_ps, mdl_MT, hel, float_me(-1), MatrixOp)
     vvv1p0_1test(all_ps, hel, mdl_MT, GC_10, MatrixOp)
+    #print(all_ps[:,0], all_ps[:,1])
     
     
     model_params.freeze_alpha_s(0.118)
