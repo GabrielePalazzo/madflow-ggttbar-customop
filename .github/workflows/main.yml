@@ -20,12 +20,6 @@ jobs:
       - name: Install dependencies
         run: python3 -m pip install --upgrade pip;
              pip install tensorflow;
-             git clone https://github.com/N3PDF/madflow ~/madflow;
-             cd ~/madflow;
-             pip install .;
 
       - name: Compile
         run: make
-        
-      - name: Run the tests
-        run: make test
