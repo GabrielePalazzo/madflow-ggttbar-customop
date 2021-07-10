@@ -121,6 +121,10 @@ matrix_signature = [
         tf.TensorSpec(shape=[None], dtype=DTYPECOMPLEX)
         ]
 
+def vxxxxxtest(pw0, cw0):
+    print(pw0 == cw0)
+    print(pw0)
+    print(cw0)
 
 class Matrix_1_gg_ttx(object):
     nexternal = float_me(4)
@@ -221,7 +225,13 @@ class Matrix_1_gg_ttx(object):
         # ----------
         # Begin code
         # ----------
+        
+        vxxxxxOp = tf.load_op_library('./matrix.so')
         w0 = vxxxxx(all_ps[:,0],ZERO,hel[0],float_me(-1))
+        w0Op = vxxxxxOp.vxxxxx(all_ps,ZERO,hel[0],float_me(-1), w0)
+        #print(w0)
+        #print(w0Op)
+        #vxxxxxtest(w0, w0Op)
         w1 = vxxxxx(all_ps[:,1],ZERO,hel[1],float_me(-1))
         w2 = oxxxxx(all_ps[:,2],mdl_MT,hel[2],float_me(+1))
         w3 = ixxxxx(all_ps[:,3],mdl_MT,hel[3],float_me(-1))
@@ -296,6 +306,13 @@ if __name__ == "__main__":
     inc_p2 = tf.concat([ea, zeros, zeros, -ea], axis=dim_ax)
 
     all_ps = tf.concat([inc_p1, inc_p2, outgoing_4m], axis=par_ax)
+    
+    hel = float_me([-1,-1,-1,1])
+    ZERO = float_me(0.)
+    vxxxxxOp = tf.load_op_library('./matrix.so')
+    w0 = vxxxxx(all_ps[:,0],ZERO,hel[0],float_me(-1))
+    w0Op = vxxxxxOp.vxxxxx(all_ps,ZERO,hel[0],float_me(-1), w0)
+    vxxxxxtest(w0, w0Op)
     
     model_params.freeze_alpha_s(0.118)
     #print('Before the call to smatrix', all_ps)

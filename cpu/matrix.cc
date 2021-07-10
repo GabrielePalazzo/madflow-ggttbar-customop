@@ -62,6 +62,8 @@ std::vector<complex128> FFV1_2(std::vector<complex128> F1, std::vector<complex12
 
 double sign(double x, double y);
 double signvec(double x, double y);
+
+
     
 class MatrixOp : public OpKernel {
  public:
@@ -154,8 +156,8 @@ std::vector<double> matrix(const double* all_ps, const double* hel, const double
         
         auto amp2 = FFV1_0(w4, w2, w1, GC_11);
         
-        jamp[0 + i * nevents] =  complex128(0, 1) * amp0 - amp1;
-        jamp[1 + i * nevents] = -complex128(0, 1) * amp0 - amp2;
+        jamp[0 + i * 2] =  complex128(0, 1) * amp0 - amp1;
+        jamp[1 + i * 2] = -complex128(0, 1) * amp0 - amp2;
     }
     
     std::vector<complex128> ret(2, complex128(0,0));
@@ -678,5 +680,154 @@ std::vector<complex128> FFV1_2(std::vector<complex128> F1, std::vector<complex12
 }
 
 REGISTER_KERNEL_BUILDER(Name("Matrix").Device(DEVICE_CPU), MatrixOp);
+
+
+REGISTER_OP("Vxxxxx")
+    .Input("all_ps: double")
+    .Input("zero: double")
+    .Input("hel: double")
+    .Input("m1: double")
+    .Input("correct_shape: complex128")
+    .Output("vx: complex128")
+    .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
+      c->set_output(0, c->input(4));
+      return Status::OK();
+    });
+
+
+class VxxxxxOp : public OpKernel {
+ public:
+  explicit VxxxxxOp(OpKernelConstruction* context) : OpKernel(context) {}
+
+  void Compute(OpKernelContext* context) override {
+    // Grab the input tensor
+    const Tensor& all_ps_tensor = context->input(0);
+    auto all_ps = all_ps_tensor.flat<double>().data();
+    
+    const Tensor& zero_tensor = context->input(1);
+    auto zero = zero_tensor.flat<double>().data();
+    
+    const Tensor& hel_tensor = context->input(2);
+    auto hel = hel_tensor.flat<double>().data();
+    
+    const Tensor& m1_tensor = context->input(3);
+    auto m1 = m1_tensor.flat<double>().data();
+    
+    const Tensor& correct_shape = context->input(4);
+
+    // Create an output tensor
+    Tensor* output_tensor = NULL;
+    OP_REQUIRES_OK(context, context->allocate_output(0, correct_shape.shape(),
+                                                     &output_tensor));
+    auto output_flat = output_tensor->flat<complex128>();
+    
+    // Begin code
+    
+    int output_slice_size = 6;
+    std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
+    
+    for (int i = 0; i < nevents; i++) {
+        double all_ps_0[4];
+        for (int j = 0; j < 4; j++) {
+            all_ps_0[j] = all_ps[16 * i + j];
+        } 
+        auto w0 = vxxxxx(all_ps_0, *zero, *hel, *m1);
+        
+        for (int j = 0; j < output_slice_size; j++) {
+            jamp[j * nevents + i] = w0[j];
+        }
+    }
+    
+    for (int i = 0; i < output_slice_size * nevents; i++) {
+      output_flat(i) = jamp[i];
+    }
+  }
+};
+
+REGISTER_KERNEL_BUILDER(Name("Vxxxxx").Device(DEVICE_CPU), VxxxxxOp);
+
+REGISTER_OP("Vxnobrstcheck")
+    .Input("all_ps: double")
+    .Input("vmass: double")
+    .Input("nhel: double")
+    .Input("nsv: double")
+    .Input("hel0: double")
+    .Input("nsvalh: double")
+    .Input("pp: double")
+    .Input("pt: double")
+    .Input("correct_shape: complex128")
+    .Output("vx: complex128")
+    .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
+      c->set_output(0, c->input(8));
+      return Status::OK();
+    });
+
+
+//std::vector<complex128> _vx_no_BRST_check(double* p, double vmass, double nhel, double nsv, double hel0, double nsvahl, double pp, double pt)
+class VxnobrstcheckOp : public OpKernel {
+ public:
+  explicit VxnobrstcheckOp(OpKernelConstruction* context) : OpKernel(context) {}
+
+  void Compute(OpKernelContext* context) override {
+    // Grab the input tensor
+    const Tensor& all_ps_tensor = context->input(0);
+    auto all_ps = all_ps_tensor.flat<double>().data();
+    
+    const Tensor& vmass_tensor = context->input(1);
+    auto vmass = vmass_tensor.flat<double>().data();
+    
+    const Tensor& nhel_tensor = context->input(2);
+    auto nhel = nhel_tensor.flat<double>().data();
+    
+    const Tensor& nsv_tensor = context->input(3);
+    auto nsv = nsv_tensor.flat<double>().data();
+    
+    const Tensor& hel0_tensor = context->input(4);
+    auto hel0 = hel0_tensor.flat<double>().data();
+    
+    const Tensor& nsvalh_tensor = context->input(5);
+    auto nsvahl = nsvalh_tensor.flat<double>().data();
+    
+    const Tensor& pp_tensor = context->input(6);
+    auto pp = pp_tensor.flat<double>().data();
+    
+    const Tensor& pt_tensor = context->input(7);
+    auto pt = pt_tensor.flat<double>().data();
+    
+    const Tensor& correct_shape = context->input(8);
+
+    // Create an output tensor
+    Tensor* output_tensor = NULL;
+    OP_REQUIRES_OK(context, context->allocate_output(0, correct_shape.shape(),
+                                                     &output_tensor));
+    auto output_flat = output_tensor->flat<complex128>();
+    
+    // Begin code
+    int output_slice_size = 4;
+    std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
+    
+    for (int i = 0; i < nevents; i++) {
+        double all_ps_0[4];
+        for (int j = 0; j < 4; j++) {
+            all_ps_0[j] = all_ps[16 * i + j];
+        } 
+        auto w0 = _vx_no_BRST_check(all_ps_0, *vmass, *nhel, *nsv, *hel0, *nsvahl, *pp, *pt);
+        
+        for (int j = 0; j < output_slice_size; j++) {
+            jamp[i * output_slice_size + j] = w0[j];
+        }
+    }
+    
+    for (int i = 0; i < output_slice_size * nevents; i++) {
+      output_flat(i) = jamp[i];
+    }
+  }
+};
+
+REGISTER_KERNEL_BUILDER(Name("Vxnobrstcheck").Device(DEVICE_CPU), VxnobrstcheckOp);
+
+/*
+End
+*/
 
 
