@@ -746,6 +746,134 @@ class VxxxxxOp : public OpKernel {
 
 REGISTER_KERNEL_BUILDER(Name("Vxxxxx").Device(DEVICE_CPU), VxxxxxOp);
 
+REGISTER_OP("Oxxxxx")
+    .Input("all_ps: double")
+    .Input("zero: double")
+    .Input("hel: double")
+    .Input("m1: double")
+    .Input("correct_shape: complex128")
+    .Output("vx: complex128")
+    .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
+      c->set_output(0, c->input(4));
+      return Status::OK();
+    });
+
+
+class OxxxxxOp : public OpKernel {
+ public:
+  explicit OxxxxxOp(OpKernelConstruction* context) : OpKernel(context) {}
+
+  void Compute(OpKernelContext* context) override {
+    // Grab the input tensor
+    const Tensor& all_ps_tensor = context->input(0);
+    auto all_ps = all_ps_tensor.flat<double>().data();
+    
+    const Tensor& zero_tensor = context->input(1);
+    auto zero = zero_tensor.flat<double>().data();
+    
+    const Tensor& hel_tensor = context->input(2);
+    auto hel = hel_tensor.flat<double>().data();
+    
+    const Tensor& m1_tensor = context->input(3);
+    auto m1 = m1_tensor.flat<double>().data();
+    
+    const Tensor& correct_shape = context->input(4);
+
+    // Create an output tensor
+    Tensor* output_tensor = NULL;
+    OP_REQUIRES_OK(context, context->allocate_output(0, correct_shape.shape(),
+                                                     &output_tensor));
+    auto output_flat = output_tensor->flat<complex128>();
+    
+    // Begin code
+    
+    int output_slice_size = 6;
+    std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
+    
+    for (int i = 0; i < nevents; i++) {
+        double all_ps_2[4];
+        for (int j = 0; j < 4; j++) {
+            all_ps_2[j] = all_ps[16 * i + j + 8];
+        } 
+        auto w0 = oxxxxx(all_ps_2, *zero, *hel, *m1);
+        
+        for (int j = 0; j < output_slice_size; j++) {
+            jamp[j * nevents + i] = w0[j];
+        }
+    }
+    
+    for (int i = 0; i < output_slice_size * nevents; i++) {
+      output_flat(i) = jamp[i];
+    }
+  }
+};
+
+REGISTER_KERNEL_BUILDER(Name("Oxxxxx").Device(DEVICE_CPU), OxxxxxOp);
+
+REGISTER_OP("Ixxxxx")
+    .Input("all_ps: double")
+    .Input("zero: double")
+    .Input("hel: double")
+    .Input("m1: double")
+    .Input("correct_shape: complex128")
+    .Output("vx: complex128")
+    .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
+      c->set_output(0, c->input(4));
+      return Status::OK();
+    });
+
+
+class IxxxxxOp : public OpKernel {
+ public:
+  explicit IxxxxxOp(OpKernelConstruction* context) : OpKernel(context) {}
+
+  void Compute(OpKernelContext* context) override {
+    // Grab the input tensor
+    const Tensor& all_ps_tensor = context->input(0);
+    auto all_ps = all_ps_tensor.flat<double>().data();
+    
+    const Tensor& zero_tensor = context->input(1);
+    auto zero = zero_tensor.flat<double>().data();
+    
+    const Tensor& hel_tensor = context->input(2);
+    auto hel = hel_tensor.flat<double>().data();
+    
+    const Tensor& m1_tensor = context->input(3);
+    auto m1 = m1_tensor.flat<double>().data();
+    
+    const Tensor& correct_shape = context->input(4);
+
+    // Create an output tensor
+    Tensor* output_tensor = NULL;
+    OP_REQUIRES_OK(context, context->allocate_output(0, correct_shape.shape(),
+                                                     &output_tensor));
+    auto output_flat = output_tensor->flat<complex128>();
+    
+    // Begin code
+    
+    int output_slice_size = 6;
+    std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
+    
+    for (int i = 0; i < nevents; i++) {
+        double all_ps_3[4];
+        for (int j = 0; j < 4; j++) {
+            all_ps_3[j] = all_ps[16 * i + j + 12];
+        } 
+        auto w0 = ixxxxx(all_ps_3, *zero, *hel, *m1);
+        
+        for (int j = 0; j < output_slice_size; j++) {
+            jamp[j * nevents + i] = w0[j];
+        }
+    }
+    
+    for (int i = 0; i < output_slice_size * nevents; i++) {
+      output_flat(i) = jamp[i];
+    }
+  }
+};
+
+REGISTER_KERNEL_BUILDER(Name("Ixxxxx").Device(DEVICE_CPU), IxxxxxOp);
+
 REGISTER_OP("Vxnobrstcheck")
     .Input("all_ps: double")
     .Input("vmass: double")

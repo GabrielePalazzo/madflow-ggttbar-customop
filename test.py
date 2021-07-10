@@ -104,7 +104,15 @@ def get_model_param(model, param_card_path):
 def areclose(t1, t2):
     dist = tf.fill(tf.shape(t1), float_me(0.0000001))
     
+    # Check if the real parts are close
+    
     result = tf.math.less_equal(tf.math.abs(tf.math.real(t1 - t2)), dist)
+    
+    tf.debugging.assert_equal(result, True)
+    
+    # Check if the imaginary parts are close
+    
+    result = tf.math.less_equal(tf.math.abs(tf.math.imag(t1 - t2)), dist)
     
     tf.debugging.assert_equal(result, True)
     print("...ok")
@@ -117,6 +125,19 @@ def vxxxxxtest(all_ps, ZERO, hel, fl, MatrixOp):
     #print(pw0)
     #print(cw0)
     #tf.debugging.assert_equal(pw0, cw0)
+    areclose(pw0, cw0)
+    
+def oxxxxxtest(all_ps, ZERO, hel, fl, MatrixOp):
+    print("Testing oxxxxx...")
+    pw0 = oxxxxx(all_ps[:,2], ZERO, hel[2], fl)
+    cw0 = MatrixOp.oxxxxx(all_ps, ZERO, hel[2], fl, pw0)
+    areclose(pw0, cw0)
+    
+def ixxxxxtest(all_ps, ZERO, hel, fl, MatrixOp):
+    print("Testing ixxxxx...")
+    pw0 = oxxxxx(all_ps[:,3], ZERO, hel[3], fl)
+    cw0 = MatrixOp.oxxxxx(all_ps, ZERO, hel[3], fl, pw0)
+    print(pw0, cw0)
     areclose(pw0, cw0)
 
 
@@ -223,6 +244,8 @@ if __name__ == "__main__":
     
     vxnobrstchecktest(all_ps, hel, MatrixOp)
     vxxxxxtest(all_ps, ZERO, hel, float_me(-1), MatrixOp)
+    oxxxxxtest(all_ps, ZERO, hel, float_me(+1), MatrixOp)
+    ixxxxxtest(all_ps, ZERO, hel, float_me(-1), MatrixOp)
     
     
     model_params.freeze_alpha_s(0.118)
