@@ -121,10 +121,6 @@ def vxxxxxtest(all_ps, ZERO, hel, fl, MatrixOp):
     print("Testing vxxxxx...")
     pw0 = vxxxxx(all_ps[:,0], ZERO, hel[0], fl)
     cw0 = MatrixOp.vxxxxx(all_ps, ZERO, hel[0], fl, pw0)
-    #print(pw0 == cw0)
-    #print(pw0)
-    #print(cw0)
-    #tf.debugging.assert_equal(pw0, cw0)
     areclose(pw0, cw0)
     
 def oxxxxxtest(all_ps, ZERO, hel, fl, MatrixOp):
@@ -135,14 +131,13 @@ def oxxxxxtest(all_ps, ZERO, hel, fl, MatrixOp):
     
 def ixxxxxtest(all_ps, ZERO, hel, fl, MatrixOp):
     print("Testing ixxxxx...")
-    pw0 = oxxxxx(all_ps[:,3], ZERO, hel[3], fl)
-    cw0 = MatrixOp.oxxxxx(all_ps, ZERO, hel[3], fl, pw0)
-    print(pw0, cw0)
+    pw0 = ixxxxx(all_ps[:,3], ZERO, hel[3], fl)
+    cw0 = MatrixOp.ixxxxx(all_ps, ZERO, hel[3], fl, pw0)
+    #print(pw0, cw0)
     areclose(pw0, cw0)
 
 
 def vxnobrstchecktest(all_ps, hel, MatrixOp):
-    
     print("Testing _vx_no_BRST_check...")
     
     nhel = hel[0]
@@ -156,11 +151,23 @@ def vxnobrstchecktest(all_ps, hel, MatrixOp):
     nsvahl = nsv * tfmath.abs(nhel)
 
     pw0 = _vx_no_BRST_check(p, ZERO, nhel, nsv, hel0, nsvahl, pp, pt)
-    #print(pw0 - )
     cw0 = MatrixOp.vxnobrstcheck(all_ps, ZERO, nhel, nsv, hel0, nsvahl, pp, pt, pw0)
     areclose(pw0, cw0)
 
-
+def vvv1p0_1test(all_ps, hel, mdl_MT, GC_10, MatrixOp):
+    print("Testing VVV1P0_1...")
+    
+    w0 = vxxxxx(all_ps[:,0],ZERO,hel[0],float_me(-1))
+    w1 = vxxxxx(all_ps[:,1],ZERO,hel[1],float_me(-1))
+    w2 = oxxxxx(all_ps[:,2],mdl_MT,hel[2],float_me(+1))
+    w3 = ixxxxx(all_ps[:,3],mdl_MT,hel[3],float_me(-1))
+    pw4= VVV1P0_1(w0, w1, GC_10, ZERO, ZERO)
+    cw4 = MatrixOp.vvv1p01(w0, w1, GC_10, ZERO, ZERO, pw4)
+    print(pw4, cw4)
+    print(pw4 == cw4)
+    #areclose(pw4, cw4)
+    
+    
 if __name__ == "__main__":
     import sys, pathlib
     import numpy as np
@@ -241,11 +248,21 @@ if __name__ == "__main__":
     #for hel in helicities:
         #print(hel, hel[0])
     
+    # 1     , 2     , 3    , 4
+    # mdl_MT, mdl_WT, GC_10, GC_11
     
-    vxnobrstchecktest(all_ps, hel, MatrixOp)
+    mdl_MT = float_me(173.0)
+    mdl_WT = float_me(1.4915000200271606)
+    GC_10  = tf.constant([-1.21771579-0.j])
+    GC_11  = tf.constant([0.+1.21771579j])
+    
+    #print(mdl_MT, mdl_WT, GC_10, GC_11)
+    
+    #vxnobrstchecktest(all_ps, hel, MatrixOp)
     vxxxxxtest(all_ps, ZERO, hel, float_me(-1), MatrixOp)
     oxxxxxtest(all_ps, ZERO, hel, float_me(+1), MatrixOp)
     ixxxxxtest(all_ps, ZERO, hel, float_me(-1), MatrixOp)
+    vvv1p0_1test(all_ps, hel, mdl_MT, GC_10, MatrixOp)
     
     
     model_params.freeze_alpha_s(0.118)

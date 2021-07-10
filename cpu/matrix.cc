@@ -616,6 +616,11 @@ std::vector<complex128> VVV1P0_1(std::vector<complex128> V2, std::vector<complex
     V1[4]= denom * (TMP4 * (-cI*(P2[2]) + cI*(P3[2])) + (V2[4]*(-cI*(TMP0) + cI*(TMP1)) + V3[4]*(cI*(TMP2) - cI*(TMP3))));
     V1[5]= denom * (TMP4 * (-cI*(P2[3]) + cI*(P3[3])) + (V2[5]*(-cI*(TMP0) + cI*(TMP1)) + V3[5]*(cI*(TMP2) - cI*(TMP3))));
     
+    V1[2]= M1;
+    V1[3]= M1 * (M1 -cI* W1);
+    V1[4]= (P1[0]*P1[0] - P1[1]*P1[1] - P1[2]*P1[2] - P1[3]*P1[3] - M1 * (M1 -cI* W1));
+    V1[5]= COUP;
+    
     return V1;
 }
 
@@ -953,6 +958,78 @@ class VxnobrstcheckOp : public OpKernel {
 };
 
 REGISTER_KERNEL_BUILDER(Name("Vxnobrstcheck").Device(DEVICE_CPU), VxnobrstcheckOp);
+
+REGISTER_OP("Vvv1p01")
+    .Input("v2: complex128")
+    .Input("v3: complex128")
+    .Input("coup: complex128")
+    .Input("m1: double")
+    .Input("w1: double")
+    .Input("correct_shape: complex128")
+    .Output("vx: complex128")
+    .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
+      c->set_output(0, c->input(5));
+      return Status::OK();
+    });
+
+
+//std::vector<complex128> VVV1P0_1(std::vector<complex128> V2, std::vector<complex128> V3, const complex128 COUP_comp, double M1_double, double W1_double)
+class Vvv1p01Op : public OpKernel {
+ public:
+  explicit Vvv1p01Op(OpKernelConstruction* context) : OpKernel(context) {}
+
+  void Compute(OpKernelContext* context) override {
+    // Grab the input tensor
+    const Tensor& V2_tensor = context->input(0);
+    auto V2_v = V2_tensor.flat<complex128>().data();
+    
+    const Tensor& V3_tensor = context->input(1);
+    auto V3_v = V3_tensor.flat<complex128>().data();
+    
+    const Tensor& COUP_tensor = context->input(2);
+    auto COUP = COUP_tensor.flat<complex128>().data();
+    
+    const Tensor& M1_tensor = context->input(3);
+    auto M1 = M1_tensor.flat<double>().data();
+    
+    const Tensor& W1_tensor = context->input(4);
+    auto W1 = W1_tensor.flat<double>().data();
+    
+    const Tensor& correct_shape = context->input(5);
+
+    // Create an output tensor
+    Tensor* output_tensor = NULL;
+    OP_REQUIRES_OK(context, context->allocate_output(0, correct_shape.shape(),
+                                                     &output_tensor));
+    auto output_flat = output_tensor->flat<complex128>();
+    
+    // Begin code
+    int output_slice_size = 6;
+    std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
+    
+    
+    for (int i = 0; i < nevents; i++) {
+        std::vector<complex128> V2(output_slice_size, complex128(0,0));
+        std::vector<complex128> V3(output_slice_size, complex128(0,0));
+        
+        for (int j = 0; j < output_slice_size; j++) {
+            V2[j] = V2_v[j + i * output_slice_size];
+            V3[j] = V3_v[j + i * output_slice_size];
+        }
+        auto w4 = VVV1P0_1(V2, V3, *COUP, *M1, *W1);
+        
+        for (int j = 0; j < output_slice_size; j++) {
+            jamp[i * output_slice_size + j] = w4[j];
+        }
+    }
+    
+    for (int i = 0; i < output_slice_size * nevents; i++) {
+      output_flat(i) = jamp[i];
+    }
+  }
+};
+
+REGISTER_KERNEL_BUILDER(Name("Vvv1p01").Device(DEVICE_CPU), Vvv1p01Op);
 
 /*
 End
