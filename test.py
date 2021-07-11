@@ -241,6 +241,77 @@ def ffv1_2test(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp):
     #print(w4, cw4)
     areclose(w4, cw4)
 
+def jamptest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp):
+    print("Testing tf.stack...")
+    
+    ZERO = float_me(0.)
+    w0 = vxxxxx(all_ps[:,0],ZERO,hel[0],float_me(-1))
+    w1 = vxxxxx(all_ps[:,1],ZERO,hel[1],float_me(-1))
+    w2 = oxxxxx(all_ps[:,2],mdl_MT,hel[2],float_me(+1))
+    w3 = ixxxxx(all_ps[:,3],mdl_MT,hel[3],float_me(-1))
+    w4 = VVV1P0_1(w0, w1, GC_10, ZERO, ZERO)
+    amp0 = FFV1_0(w3,w2,w4,GC_11)
+    w4 = FFV1_1(w2,w0,GC_11,mdl_MT,mdl_WT)
+    amp1 = FFV1_0(w3,w4,w1,GC_11)
+    w4 = FFV1_2(w3,w0,GC_11,mdl_MT,mdl_WT)
+    amp2= FFV1_0(w4,w2,w1,GC_11)
+    jamp = tf.stack([complex_tf(0,1)*amp0-amp1,-complex(0,1)*amp0-amp2], axis=0)
+    
+    cw0 = MatrixOp.vxxxxx(all_ps,ZERO,hel[0],float_me(-1), w0)
+    cw1 = MatrixOp.vxxxxx(all_ps,ZERO,hel[1],float_me(-1), w1)
+    cw2 = MatrixOp.oxxxxx(all_ps,mdl_MT,hel[2],float_me(+1), w2)
+    cw3 = MatrixOp.ixxxxx(all_ps,mdl_MT,hel[3],float_me(-1), w3)
+    cw4 = MatrixOp.vvv1p01(all_ps, hel, cw0, cw1, GC_10, ZERO, ZERO, mdl_MT, w4)
+    camp0 = MatrixOp.ffv10(all_ps, hel, cw3, cw2, cw4, GC_10, GC_11, mdl_MT, amp0)
+    cw4 = MatrixOp.ffv11(all_ps, hel, cw2, cw0, GC_10, GC_11, mdl_MT, mdl_WT, w4)
+    camp1 = MatrixOp.ffv10(all_ps, hel, cw3, cw4, cw1, GC_10, GC_11, mdl_MT, amp1)
+    cw4 = MatrixOp.ffv12(all_ps, hel, cw3, cw0, GC_10, GC_11, mdl_MT, mdl_WT, w4)
+    camp1 = MatrixOp.ffv10(all_ps, hel, cw4, cw2, cw1, GC_10, GC_11, mdl_MT, amp2)
+    cjamp = MatrixOp.stacktest(amp0, amp1, amp2, jamp)
+    
+    #print(jamp, cjamp)
+    areclose(jamp, cjamp)
+
+def matrixtest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp):
+    print("Testing matrix element...")
+    
+    ZERO = float_me(0.)
+    ncolor = 2
+    denom = tf.constant([3,3], dtype=DTYPECOMPLEX)
+    cf = tf.constant([[16,-2], [-2,16]], dtype=DTYPECOMPLEX)
+    
+    w0 = vxxxxx(all_ps[:,0],ZERO,hel[0],float_me(-1))
+    w1 = vxxxxx(all_ps[:,1],ZERO,hel[1],float_me(-1))
+    w2 = oxxxxx(all_ps[:,2],mdl_MT,hel[2],float_me(+1))
+    w3 = ixxxxx(all_ps[:,3],mdl_MT,hel[3],float_me(-1))
+    w4 = VVV1P0_1(w0, w1, GC_10, ZERO, ZERO)
+    amp0 = FFV1_0(w3,w2,w4,GC_11)
+    w4 = FFV1_1(w2,w0,GC_11,mdl_MT,mdl_WT)
+    amp1 = FFV1_0(w3,w4,w1,GC_11)
+    w4 = FFV1_2(w3,w0,GC_11,mdl_MT,mdl_WT)
+    amp2= FFV1_0(w4,w2,w1,GC_11)
+    jamp = tf.stack([complex_tf(0,1)*amp0-amp1,-complex(0,1)*amp0-amp2], axis=0)
+    ret = tf.einsum("ie, ij, je -> e", jamp, cf, tf.math.conj(jamp)/tf.reshape(denom, (ncolor, 1)))
+    res = tf.math.real(ret)
+    
+    cres = MatrixOp.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11, res)
+    cw0 = MatrixOp.vxxxxx(all_ps,ZERO,hel[0],float_me(-1), w0)
+    cw1 = MatrixOp.vxxxxx(all_ps,ZERO,hel[1],float_me(-1), w1)
+    cw2 = MatrixOp.oxxxxx(all_ps,mdl_MT,hel[2],float_me(+1), w2)
+    cw3 = MatrixOp.ixxxxx(all_ps,mdl_MT,hel[3],float_me(-1), w3)
+    cw4 = MatrixOp.vvv1p01(all_ps, hel, cw0, cw1, GC_10, ZERO, ZERO, mdl_MT, w4)
+    camp0 = MatrixOp.ffv10(all_ps, hel, cw3, cw2, cw4, GC_10, GC_11, mdl_MT, amp0)
+    cw4 = MatrixOp.ffv11(all_ps, hel, cw2, cw0, GC_10, GC_11, mdl_MT, mdl_WT, w4)
+    camp1 = MatrixOp.ffv10(all_ps, hel, cw3, cw4, cw1, GC_10, GC_11, mdl_MT, amp1)
+    cw4 = MatrixOp.ffv12(all_ps, hel, cw3, cw0, GC_10, GC_11, mdl_MT, mdl_WT, w4)
+    camp1 = MatrixOp.ffv10(all_ps, hel, cw4, cw2, cw1, GC_10, GC_11, mdl_MT, amp2)
+    cjamp = MatrixOp.stacktest(amp0, amp1, amp2, jamp)
+    cret = tf.einsum("ie, ij, je -> e", cjamp, cf, tf.math.conj(cjamp)/tf.reshape(denom, (ncolor, 1)))
+    cres = tf.math.real(cret)
+    
+    print(res, cres)
+    areclose(res, cres)
+
 if __name__ == "__main__":
     import sys, pathlib
     import numpy as np
@@ -351,6 +422,8 @@ if __name__ == "__main__":
     ffv1_0test(all_ps, hel, mdl_MT, GC_10, GC_11, MatrixOp)
     ffv1_1test(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp)
     ffv1_2test(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp)
+    jamptest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp)
+    matrixtest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp)
     #print(all_ps[:,0], all_ps[:,1])
     
     """

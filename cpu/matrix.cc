@@ -158,8 +158,8 @@ std::vector<double> matrix(const double* all_ps, const double* hel, const double
         
         auto amp2 = FFV1_0(w4, w2, w1, GC_11);
         
-        jamp[0 + i * 2] =  complex128(0, 1) * amp0 - amp1;
-        jamp[1 + i * 2] = -complex128(0, 1) * amp0 - amp2;
+        jamp[i + 0 * nevents] =  complex128(0, 1) * amp0 - amp1;
+        jamp[i + 1 * nevents] = -complex128(0, 1) * amp0 - amp2;
     }
     
     std::vector<complex128> ret(2, complex128(0,0));
@@ -1429,6 +1429,60 @@ class Ffv12Op : public OpKernel {
 };
 
 REGISTER_KERNEL_BUILDER(Name("Ffv12").Device(DEVICE_CPU), Ffv12Op);
+
+REGISTER_OP("Stacktest")
+    .Input("amp0: complex128")
+    .Input("amp1: complex128")
+    .Input("amp2: complex128")
+    .Input("correct_shape: complex128")
+    .Output("vx: complex128")
+    .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
+      c->set_output(0, c->input(3));
+      return Status::OK();
+    });
+
+//jamp = MatrixOp.stack(amp0, amp1, amp2, jamp)
+//complex128 FFV1_0(std::vector<complex128> F1, std::vector<complex128> F2, std::vector<complex128> V3, const complex128 COUP_comp)
+class StackOp : public OpKernel {
+ public:
+  explicit StackOp(OpKernelConstruction* context) : OpKernel(context) {}
+
+  void Compute(OpKernelContext* context) override {
+    // Grab the input tensor
+    
+    const Tensor& amp0_tensor = context->input(0);
+    auto amp0 = amp0_tensor.flat<complex128>().data();
+    
+    const Tensor& amp1_tensor = context->input(1);
+    auto amp1 = amp1_tensor.flat<complex128>().data();
+    
+    const Tensor& amp2_tensor = context->input(2);
+    auto amp2 = amp2_tensor.flat<complex128>().data();
+    
+    const Tensor& correct_shape = context->input(3);
+
+    // Create an output tensor
+    Tensor* output_tensor = NULL;
+    OP_REQUIRES_OK(context, context->allocate_output(0, correct_shape.shape(),
+                                                     &output_tensor));
+    auto output_flat = output_tensor->flat<complex128>();
+    
+    // Begin code
+    int output_slice_size = 2;
+    std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
+    
+    for (int i = 0; i < nevents; i++) {
+        jamp[i + 0 * nevents] =  complex128(0, 1) * amp0[i] - amp1[i];
+        jamp[i + 1 * nevents] = -complex128(0, 1) * amp0[i] - amp2[i];
+    }
+    
+    for (int i = 0; i < output_slice_size * nevents; i++) {
+      output_flat(i) = jamp[i];
+    }
+  }
+};
+
+REGISTER_KERNEL_BUILDER(Name("Stacktest").Device(DEVICE_CPU), StackOp);
 
 /*
 End

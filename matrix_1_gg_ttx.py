@@ -192,7 +192,7 @@ class Matrix_1_gg_ttx(object):
             ans2 += matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, ans2)
         
         #print('Before return')
-        return ans2/self.denominator
+        return (ans2/self.denominator)
 
     @tf.function(input_signature=matrix_signature)
     def matrix(self,all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11):
@@ -317,7 +317,7 @@ if __name__ == "__main__":
     model_params.freeze_alpha_s(0.118)
     #print('Before the call to smatrix', all_ps)
     wgt_set = matrix.smatrix(all_ps, *model_params.evaluate(None))
-    print(*model_params.evaluate(None))
+    #print(*model_params.evaluate(None))
     #print('After having called smatrix')
     print("All good!")
     for i, (p, wgt) in enumerate(zip(all_ps, wgt_set)):
