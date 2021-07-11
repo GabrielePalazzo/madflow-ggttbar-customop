@@ -17,7 +17,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.math as tfmath
 import collections
-
+"""
 ModelParamTupleConst = collections.namedtuple("constants", ["mdl_MT","mdl_WT"])
 ModelParamTupleFunc = collections.namedtuple("functions", ["GC_10","GC_11"])
 
@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.join(root_path, 'aloha', 'template_files'))
 
 import models.import_ufo as import_ufo
 import models.check_param_card as param_card_reader
-
+"""
 # import the ALOHA routines
 from aloha_1_gg_ttx import *
 
@@ -187,7 +187,7 @@ if __name__ == "__main__":
     import sys, pathlib
     import numpy as np
 
-
+    """
     # Read up the model
     model_sm = pathlib.Path(root_path) / "models/sm"
     if not model_sm.exists():
@@ -195,7 +195,7 @@ if __name__ == "__main__":
         sys.exit(0)
     model = import_ufo.import_model(model_sm.as_posix())
     model_params = get_model_param(model, 'Cards/param_card.dat')
-
+    """
     # Define th phase space
     # The structure asked by the matrix elements is
     #   (nevents, ndimensions, nparticles)
@@ -216,7 +216,7 @@ if __name__ == "__main__":
     partial_out_p = tf.random.uniform(shape, minval=-max_momentum, maxval=max_momentum, dtype=DTYPE)
     last_p = -tf.reduce_sum(partial_out_p, keepdims=True, axis=par_ax)
     out_p = tf.concat([partial_out_p, last_p], axis=par_ax)
-
+    """
     if "mdl_MT" in dir(model_params):
         # TODO fill in the mass according to the particles
         out_m = tf.reshape((npar - 2) * [model_params.mdl_MT], (1, -1, 1))
@@ -232,7 +232,7 @@ if __name__ == "__main__":
     inc_p2 = tf.concat([ea, zeros, zeros, -ea], axis=dim_ax)
 
     all_ps = tf.concat([inc_p1, inc_p2, outgoing_4m], axis=par_ax)
-    
+    """
     hel = float_me([-1,-1,-1,1])
     ZERO = float_me(0.)
     
@@ -271,6 +271,18 @@ if __name__ == "__main__":
     GC_10  = tf.constant([-1.21771579-0.j])
     GC_11  = tf.constant([0.+1.21771579j])
     
+    all_ps = tf.constant([
+       [[6072.61964028,    0.,            0.,         6072.61964028],
+        [6072.61964028,    0.,            0.,        -6072.61964028],
+        [6072.61964028,-2777.31637198, 1722.92077616, 5118.08236202],
+        [6072.61964028, 2777.31637198,-1722.92077616,-5118.08236202]],
+       [[3068.10329143,    0.,            0.,         3068.10329143],
+        [3068.10329143,    0.,            0.,        -3068.10329143],
+        [3068.10329143,-1224.19479866, 2778.9848378,  -438.00476374],
+        [3068.10329143, 1224.19479866,-2778.9848378,   438.00476374]]], dtype=tf.float64)
+    
+    #print(all_ps)
+    
     #print(mdl_MT, mdl_WT, GC_10, GC_11)
     
     #vxnobrstchecktest(all_ps, hel, MatrixOp)
@@ -281,5 +293,6 @@ if __name__ == "__main__":
     ffv1_0test(all_ps, hel, mdl_MT, GC_10, GC_11, MatrixOp)
     #print(all_ps[:,0], all_ps[:,1])
     
-    
+    """
     model_params.freeze_alpha_s(0.118)
+    """

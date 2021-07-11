@@ -8,7 +8,7 @@
 
 using namespace tensorflow;
 
-#define USE_PYTHON 0
+#define USE_PYTHON 1
 
 // mdl_MT,mdl_WT,GC_10,GC_11
 
