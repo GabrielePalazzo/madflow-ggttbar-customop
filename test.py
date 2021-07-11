@@ -181,7 +181,23 @@ def ffv1_0test(all_ps, hel, mdl_MT, GC_10, GC_11, MatrixOp):
     camp0 = MatrixOp.ffv10(all_ps, hel, w3, w2, w4, GC_10, GC_11, mdl_MT, pamp0)
     
     print(pamp0, camp0)
-    areclose(pamp0, camp0)
+    #areclose(pamp0, camp0)
+
+def ffv1_1test(all_ps, hel, mdl_MT, GC_10, GC_11, MatrixOp):
+    print("Testing FFV1_0...")
+    
+    ZERO = float_me(0.)
+    w0 = vxxxxx(all_ps[:,0],ZERO,hel[0],float_me(-1))
+    w1 = vxxxxx(all_ps[:,1],ZERO,hel[1],float_me(-1))
+    w2 = oxxxxx(all_ps[:,2],mdl_MT,hel[2],float_me(+1))
+    w3 = ixxxxx(all_ps[:,3],mdl_MT,hel[3],float_me(-1))
+    w4= VVV1P0_1(w0, w1, GC_10, ZERO, ZERO)
+    amp0= FFV1_0(w3,w2,w4,GC_11)
+    pw4= FFV1_1(w2,w0,GC_11,mdl_MT,mdl_WT)
+    cw4 = MatrixOp.ffv11(all_ps, hel, w2, w0, GC_10, GC_11, mdl_MT, mdl_WT, pw4)
+    
+    print(pw4, cw4)
+    areclose(pw4, cw4)
     
 if __name__ == "__main__":
     import sys, pathlib
@@ -291,6 +307,7 @@ if __name__ == "__main__":
     ixxxxxtest(all_ps, mdl_MT, hel, float_me(-1), MatrixOp)
     vvv1p0_1test(all_ps, hel, mdl_MT, GC_10, MatrixOp)
     ffv1_0test(all_ps, hel, mdl_MT, GC_10, GC_11, MatrixOp)
+    ffv1_1test(all_ps, hel, mdl_MT, GC_10, GC_11, MatrixOp)
     #print(all_ps[:,0], all_ps[:,1])
     
     """
