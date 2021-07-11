@@ -122,6 +122,7 @@ def vxxxxxtest(all_ps, ZERO, hel, fl, MatrixOp):
     print("Testing vxxxxx...")
     pw0 = vxxxxx(all_ps[:,0], ZERO, hel[0], fl)
     cw0 = MatrixOp.vxxxxx(all_ps, ZERO, hel[0], fl, pw0)
+    #print(pw0, cw0)
     areclose(pw0, cw0)
     
 def oxxxxxtest(all_ps, ZERO, hel, fl, MatrixOp):
@@ -291,10 +292,12 @@ def matrixtest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp):
     w4 = FFV1_2(w3,w0,GC_11,mdl_MT,mdl_WT)
     amp2= FFV1_0(w4,w2,w1,GC_11)
     jamp = tf.stack([complex_tf(0,1)*amp0-amp1,-complex(0,1)*amp0-amp2], axis=0)
+    #print(jamp, cf, tf.math.conj(jamp)/tf.reshape(denom, (ncolor, 1)))
     ret = tf.einsum("ie, ij, je -> e", jamp, cf, tf.math.conj(jamp)/tf.reshape(denom, (ncolor, 1)))
     res = tf.math.real(ret)
     
     cres = MatrixOp.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11, res)
+    """
     cw0 = MatrixOp.vxxxxx(all_ps,ZERO,hel[0],float_me(-1), w0)
     cw1 = MatrixOp.vxxxxx(all_ps,ZERO,hel[1],float_me(-1), w1)
     cw2 = MatrixOp.oxxxxx(all_ps,mdl_MT,hel[2],float_me(+1), w2)
@@ -308,8 +311,9 @@ def matrixtest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp):
     cjamp = MatrixOp.stacktest(amp0, amp1, amp2, jamp)
     cret = tf.einsum("ie, ij, je -> e", cjamp, cf, tf.math.conj(cjamp)/tf.reshape(denom, (ncolor, 1)))
     cres = tf.math.real(cret)
+    """
     
-    print(res, cres)
+    #print(res, cres)
     areclose(res, cres)
 
 if __name__ == "__main__":

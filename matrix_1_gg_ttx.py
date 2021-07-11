@@ -191,8 +191,7 @@ class Matrix_1_gg_ttx(object):
             ans += self.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11)
             ans2 += matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, ans2)
         
-        #print('Before return')
-        return (ans2/self.denominator)
+        return (ans/self.denominator)
 
     @tf.function(input_signature=matrix_signature)
     def matrix(self,all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11):
@@ -226,12 +225,7 @@ class Matrix_1_gg_ttx(object):
         # Begin code
         # ----------
         
-        #vxxxxxOp = tf.load_op_library('./matrix.so')
         w0 = vxxxxx(all_ps[:,0],ZERO,hel[0],float_me(-1))
-        #w0Op = vxxxxxOp.vxxxxx(all_ps,ZERO,hel[0],float_me(-1), w0)
-        #print(w0)
-        #print(w0Op)
-        #vxxxxxtest(w0, w0Op)
         w1 = vxxxxx(all_ps[:,1],ZERO,hel[1],float_me(-1))
         w2 = oxxxxx(all_ps[:,2],mdl_MT,hel[2],float_me(+1))
         w3 = ixxxxx(all_ps[:,3],mdl_MT,hel[3],float_me(-1))
@@ -307,18 +301,10 @@ if __name__ == "__main__":
 
     all_ps = tf.concat([inc_p1, inc_p2, outgoing_4m], axis=par_ax)
     
-    #hel = float_me([-1,-1,-1,1])
-    #ZERO = float_me(0.)
-    #vxxxxxOp = tf.load_op_library('./matrix.so')
-    #w0 = vxxxxx(all_ps[:,0],ZERO,hel[0],float_me(-1))
-    #w0Op = vxxxxxOp.vxxxxx(all_ps,ZERO,hel[0],float_me(-1), w0)
-    #vxxxxxtest(w0, w0Op)
-    
     model_params.freeze_alpha_s(0.118)
-    #print('Before the call to smatrix', all_ps)
+    
     wgt_set = matrix.smatrix(all_ps, *model_params.evaluate(None))
-    #print(*model_params.evaluate(None))
-    #print('After having called smatrix')
+    
     print("All good!")
     for i, (p, wgt) in enumerate(zip(all_ps, wgt_set)):
         print(f"\n#{i} ME value: {wgt.numpy():.3e} for P set:\n{p.numpy()}")

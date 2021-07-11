@@ -126,6 +126,7 @@ std::vector<double> matrix(const double* all_ps, const double* hel, const double
     // Begin code
     
     std::vector<complex128> jamp(2 * nevents, complex128(0,0));
+    std::vector<complex128> ret(2, complex128(0,0));
     
     for (int i = 0; i < nevents; i++) {
         double all_ps_0[4];
@@ -140,7 +141,7 @@ std::vector<double> matrix(const double* all_ps, const double* hel, const double
         } 
         auto w0 = vxxxxx(all_ps_0, ZERO, hel[0], -1);
         auto w1 = vxxxxx(all_ps_1, ZERO, hel[1], -1);
-        auto w2 = oxxxxx(all_ps_2, ZERO, hel[2], +1);
+        auto w2 = oxxxxx(all_ps_2, mdl_MT, hel[2], +1);
         auto w3 = ixxxxx(all_ps_3, mdl_MT, hel[3], -1);
         auto w4 = VVV1P0_1(w0, w1, GC_10, ZERO, ZERO);
         
@@ -161,12 +162,14 @@ std::vector<double> matrix(const double* all_ps, const double* hel, const double
         jamp[i + 0 * nevents] =  complex128(0, 1) * amp0 - amp1;
         jamp[i + 1 * nevents] = -complex128(0, 1) * amp0 - amp2;
     }
-    
-    std::vector<complex128> ret(2, complex128(0,0));
+    /*
+    std::vector<complex128> ret(2, complex128(0,0));*/
     for (int e = 0; e < nevents; e++) {
+        ret[e] = 0;
         for (int i = 0; i < 2; i++) {
             for (int j = 0; j < 2; j++) {
-                ret[e] = jamp[i + e * nevents] * cf[i + j * 2] * std::conj(jamp[j + e * nevents]) / denom[e];
+                // ret = tf.einsum("ie, ij, je -> e", jamp, cf, tf.math.conj(jamp)/tf.reshape(denom, (ncolor, 1)))
+                ret[e] += (jamp[i * nevents + e] * cf[i * 2+ j]) * (std::conj(jamp[j * nevents + e]) / denom[e]);
             }
         }
     }
