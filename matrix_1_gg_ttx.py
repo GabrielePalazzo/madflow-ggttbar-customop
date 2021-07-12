@@ -32,6 +32,10 @@ import models.check_param_card as param_card_reader
 # import the ALOHA routines
 from aloha_1_gg_ttx import *
 
+import cProfile, pstats, io
+from pstats import SortKey
+import time
+
 
 def get_model_param(model, param_card_path):
     param_card = param_card_reader.ParamCard(param_card_path)
@@ -187,9 +191,44 @@ class Matrix_1_gg_ttx(object):
         ans = tf.zeros(nevts, dtype=DTYPE)
         matrixOp = tf.load_op_library('./matrix.so')
         ans2 = tf.zeros(nevts, dtype=DTYPE)
+        
+        """
+        start = time.time()
         for hel in self.helicities:
             ans += self.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11)
+        end = time.time()
+        print(f"time (python) (s): {end-start}")
+        start = time.time()
+        for hel in self.helicities:
             ans2 += matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, ans2)
+        end = time.time()
+        print(f"time (Op) (s): {end-start}")
+        """
+        for hel in self.helicities:
+            pr = cProfile.Profile()
+            pr.enable()
+            # ... do something ...
+            ans += self.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11)
+            pr.disable()
+            s = io.StringIO()
+            sortby = SortKey.CUMULATIVE
+            ps = pstats.Stats(pr, stream=s).strip_dirs().sort_stats(sortby)
+            ps.print_stats()
+            print(s.getvalue())
+            #ans2 += matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, ans2)
+            
+        for hel in self.helicities:
+            pr = cProfile.Profile()
+            pr.enable()
+            # ... do something ...
+            ans2 += matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, ans2)
+            pr.disable()
+            s = io.StringIO()
+            sortby = SortKey.CUMULATIVE
+            ps = pstats.Stats(pr, stream=s).strip_dirs().sort_stats(sortby)
+            ps.print_stats()
+            print(s.getvalue())
+        
         
         return (ans/self.denominator)
 
@@ -242,6 +281,7 @@ class Matrix_1_gg_ttx(object):
         jamp = tf.stack([complex_tf(0,1)*amp0-amp1,-complex(0,1)*amp0-amp2], axis=0)
 
         ret = tf.einsum("ie, ij, je -> e", jamp, cf, tf.math.conj(jamp)/tf.reshape(denom, (ncolor, 1)))
+        
         return tf.math.real(ret)
 
 

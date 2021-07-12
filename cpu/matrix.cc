@@ -30,6 +30,7 @@ int nevents = 2;
 double SQH = sqrt(0.5);
 complex128 CZERO = complex128(0.0, 0.0);
 std::vector<double> matrix(const double*, const double*, const double, const double, const complex128, const complex128);
+double matrixSingleEvent(double* all_ps_0, double* all_ps_1, double* all_ps_2, double* all_ps_3, const double* hel, const double mdl_MT, const double mdl_WT, const complex128 GC_10, const complex128 GC_11, complex128 denom);
 std::vector<complex128> vxxxxx(double* p, double fmass, double nhel, double nsf);
 std::vector<complex128> ixxxxx(double* p, double fmass, double nhel, double nsf);
 std::vector<complex128> oxxxxx(double* p, double fmass, double nhel, double nsf);
@@ -51,7 +52,7 @@ std::vector<complex128> _vx_BRST_check_massive(double* p, double vmass);
 std::vector<complex128> _vx_no_BRST_check_massive(double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt);
 std::vector<complex128> _vx_no_BRST_check_massive_pp_zero(double nhel, double nsvahl);
 std::vector<complex128> _vx_no_BRST_check_massive_pp_nonzero(double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt);
-std::vector<complex128>  _vx_no_BRST_check_massive_pp_nonzero_pt_nonzero(double* p, double nhel, double hel0, double nsvahl, double pp, double pt, double emp);
+std::vector<complex128> _vx_no_BRST_check_massive_pp_nonzero_pt_nonzero(double* p, double nhel, double hel0, double nsvahl, double pp, double pt, double emp);
 std::vector<complex128> _vx_no_BRST_check_massive_pp_nonzero_pt_zero(double* p, double nhel, double nsvahl);
 std::vector<complex128> _vx_no_BRST_check_massless(double* p, double nhel, double nsv);
 std::vector<complex128> _vx_no_BRST_check_massless_pt_nonzero(double* p, double nhel, double nsv, double pp, double pt);
@@ -107,25 +108,25 @@ class MatrixOp : public OpKernel {
   }
 };
 
-std::vector<double> matrix(const double* all_ps, const double* hel, const double mdl_MT, const double mdl_WT, const complex128 GC_10, const complex128 GC_11) {
+std::vector<double> matrix(const double* all_ps, const double* hel, const double mdl_MT, const double mdl_WT, const complex128 GC_10, const complex128 GC_11) {/*
     int ngraphs = 3;
     int nwavefuncs = 5;
     int ncolor = 2;
-    double ZERO = 0.;
+    double ZERO = 0.;*/
     
     std::vector<complex128> denom(2, complex128(0,0));
     denom[0] = 3;
     denom[1] = 3;
-    
+    /*
     std::vector<complex128> cf(4, complex128(0,0));
     cf[0] = 16;
     cf[1] = -2;
     cf[2] = -2;
-    cf[3] = 16;
+    cf[3] = 16;*/
     
     // Begin code
     
-    std::vector<double> ret_re(2, double(0));
+    std::vector<double> ret_re(nevents, double(0));
     
     for (int i = 0; i < nevents; i++) {
         double all_ps_0[4];
@@ -137,7 +138,7 @@ std::vector<double> matrix(const double* all_ps, const double* hel, const double
             all_ps_1[j] = all_ps[16 * i + j + 4];
             all_ps_2[j] = all_ps[16 * i + j + 8];
             all_ps_3[j] = all_ps[16 * i + j + 12];
-        } 
+        }/*
         auto w0 = vxxxxx(all_ps_0, ZERO, hel[0], -1);
         auto w1 = vxxxxx(all_ps_1, ZERO, hel[1], -1);
         auto w2 = oxxxxx(all_ps_2, mdl_MT, hel[2], +1);
@@ -170,10 +171,58 @@ std::vector<double> matrix(const double* all_ps, const double* hel, const double
                 ret += (jamp[a] * cf[a * 2 + b]) * (std::conj(jamp[b]) / denom[i]);
             }
         }
-        ret_re[i] = ret.real();
+        ret_re[i] = ret.real();*/
+        ret_re[i] = matrixSingleEvent(all_ps_0, all_ps_1, all_ps_2, all_ps_3, hel, mdl_MT, mdl_WT, GC_10, GC_11, denom[i]);
     }
     
     return ret_re;
+}
+
+double matrixSingleEvent(double* all_ps_0, double* all_ps_1, double* all_ps_2, double* all_ps_3, const double* hel, const double mdl_MT, const double mdl_WT, const complex128 GC_10, const complex128 GC_11, complex128 denom) {
+    int ngraphs = 3;
+    int nwavefuncs = 5;
+    int ncolor = 2;
+    double ZERO = 0.;
+    
+    std::vector<complex128> cf(4, complex128(0,0));
+    cf[0] = 16;
+    cf[1] = -2;
+    cf[2] = -2;
+    cf[3] = 16;
+    
+    auto w0 = vxxxxx(all_ps_0, ZERO, hel[0], -1);
+    auto w1 = vxxxxx(all_ps_1, ZERO, hel[1], -1);
+    auto w2 = oxxxxx(all_ps_2, mdl_MT, hel[2], +1);
+    auto w3 = ixxxxx(all_ps_3, mdl_MT, hel[3], -1);
+    auto w4 = VVV1P0_1(w0, w1, GC_10, ZERO, ZERO);
+    
+    // Amplitude(s) for diagram number 1
+    
+    auto amp0 = FFV1_0(w3, w2, w4, GC_11);
+    w4 = FFV1_1(w2, w0, GC_11, mdl_MT, mdl_WT);
+    
+    // Amplitude(s) for diagram number 2
+    
+    auto amp1 = FFV1_0(w3,w4,w1,GC_11);
+    w4= FFV1_2(w3, w0, GC_11, mdl_MT, mdl_WT);
+    
+    // Amplitude(s) for diagram number 3
+    
+    auto amp2 = FFV1_0(w4, w2, w1, GC_11);
+    
+    std::vector<complex128> jamp(2, complex128(0,0));
+    
+    jamp[0] =  complex128(0, 1) * amp0 - amp1;
+    jamp[1] = -complex128(0, 1) * amp0 - amp2;
+    
+    complex128 ret(0, 0);
+    for (int a = 0; a < 2; a++) {
+        for (int b = 0; b < 2; b++) {
+            // ret = tf.einsum("ae, ab, be -> e", jamp, cf, tf.math.conj(jamp)/tf.reshape(denom, (ncolor, 1)))
+            ret += (jamp[a] * cf[a * 2 + b]) * (std::conj(jamp[b]) / denom);
+        }
+    }
+    return ret.real();
 }
 
 std::vector<complex128> _ix_massive(double* p, double fmass, double nsf, double nh) {
