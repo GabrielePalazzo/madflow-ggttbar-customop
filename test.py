@@ -32,6 +32,8 @@ import models.check_param_card as param_card_reader
 # import the ALOHA routines
 from aloha_1_gg_ttx import *
 
+import time
+
 
 def get_model_param(model, param_card_path):
     param_card = param_card_reader.ParamCard(param_card_path)
@@ -275,6 +277,7 @@ def jamptest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp):
 
 def matrixtest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp):
     print("Testing matrix element...")
+    #start = time.time()
     
     ZERO = float_me(0.)
     ncolor = 2
@@ -295,6 +298,8 @@ def matrixtest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp):
     #print(jamp, cf, tf.math.conj(jamp)/tf.reshape(denom, (ncolor, 1)))
     ret = tf.einsum("ie, ij, je -> e", jamp, cf, tf.math.conj(jamp)/tf.reshape(denom, (ncolor, 1)))
     res = tf.math.real(ret)
+    #end = time.time()
+    #print(f"time (python) (s): {end-start}")
     
     cres = MatrixOp.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11, res)
     """
@@ -429,7 +434,6 @@ if __name__ == "__main__":
     jamptest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp)
     matrixtest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp)
     #print(all_ps[:,0], all_ps[:,1])
-    
     """
     model_params.freeze_alpha_s(0.118)
     """

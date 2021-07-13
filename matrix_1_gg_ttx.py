@@ -192,7 +192,7 @@ class Matrix_1_gg_ttx(object):
         matrixOp = tf.load_op_library('./matrix.so')
         ans2 = tf.zeros(nevts, dtype=DTYPE)
         
-        """
+        
         start = time.time()
         for hel in self.helicities:
             ans += self.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11)
@@ -228,7 +228,7 @@ class Matrix_1_gg_ttx(object):
             ps = pstats.Stats(pr, stream=s).strip_dirs().sort_stats(sortby)
             ps.print_stats()
             print(s.getvalue())
-        
+        """
         
         return (ans/self.denominator)
 
