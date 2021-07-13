@@ -4,7 +4,7 @@
 #include "tensorflow/cc/ops/array_ops.h"
 #include "tensorflow/cc/ops/math_ops.h"
 
-#include <vector>
+//#include <vector>
 #include <time.h> 
 
 using namespace tensorflow;
@@ -30,32 +30,32 @@ int nevents = 2;
 double SQH = sqrt(0.5);
 complex128 CZERO = complex128(0.0, 0.0);
 void matrix(const double*, const double*, const double, const double, const complex128, const complex128, Eigen::TensorMap<Eigen::Tensor<double, 1, 1, long int>, 16, Eigen::MakePointer>);
-void vxxxxx(double* p, double fmass, double nhel, double nsf, complex128*);
-void ixxxxx(double* p, double fmass, double nhel, double nsf, complex128*);
-void oxxxxx(double* p, double fmass, double nhel, double nsf, complex128*);
-void _ix_massive(double* p, double fmass, double nsf, double nh, complex128* v);
-void _ix_massless(double* p, double nhel, double nsf, double nh, complex128* v);
-void _ox_massless(double* p, double nhel, double nsf, double nh, complex128* v);
-void _ox_massive(double* p, double fmass, double nhel, double nsf, double nh, complex128* v);
-void _ix_massless_sqp0p3_zero(double* p, double nhel, complex128& val);
-void _ix_massless_sqp0p3_nonzero(double* p, double nh, double sqp0p3, complex128& val);
-void _ix_massive_pp_nonzero(double* p, double fmass, double nsf, double nh, int ip, int im, double pp, complex128* v);
+void vxxxxx(const double* p, double fmass, double nhel, double nsf, complex128*);
+void ixxxxx(const double* p, double fmass, double nhel, double nsf, complex128*);
+void oxxxxx(const double* p, double fmass, double nhel, double nsf, complex128*);
+void _ix_massive(const double* p, double fmass, double nsf, double nh, complex128* v);
+void _ix_massless(const double* p, double nhel, double nsf, double nh, complex128* v);
+void _ox_massless(const double* p, double nhel, double nsf, double nh, complex128* v);
+void _ox_massive(const double* p, double fmass, double nhel, double nsf, double nh, complex128* v);
+void _ix_massless_sqp0p3_zero(const double* p, double nhel, complex128& val);
+void _ix_massless_sqp0p3_nonzero(const double* p, double nh, double sqp0p3, complex128& val);
+void _ix_massive_pp_nonzero(const double* p, double fmass, double nsf, double nh, int ip, int im, double pp, complex128* v);
 void _ix_massless_nh_one(complex128* chi, complex128* v);
 void _ix_massless_nh_not_one(complex128* chi, complex128* v);
 void _ox_massive_pp_zero(double fmass, double nsf, int ip, int im, complex128* v);
-void _ox_massive_pp_nonzero(double* p, double fmass, double nsf, double nh, double pp, complex128* v);
-void _vx_BRST_check(double* p, double vmass, complex128* v);
-void _vx_no_BRST_check(double *p, double vmass, double nhel, double nsv, double hel0, double nsvahl, double pp, double pt, complex128* v);
-void _vx_BRST_check_massless(double* p, complex128* v);
-void _vx_BRST_check_massive(double* p, double vmass, complex128* v);
-void _vx_no_BRST_check_massive(double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt, complex128* v);
+void _ox_massive_pp_nonzero(const double* p, double fmass, double nsf, double nh, double pp, complex128* v);
+void _vx_BRST_check(const double* p, double vmass, complex128* v);
+void _vx_no_BRST_check(const double *p, double vmass, double nhel, double nsv, double hel0, double nsvahl, double pp, double pt, complex128* v);
+void _vx_BRST_check_massless(const double* p, complex128* v);
+void _vx_BRST_check_massive(const double* p, double vmass, complex128* v);
+void _vx_no_BRST_check_massive(const double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt, complex128* v);
 void _vx_no_BRST_check_massive_pp_zero(double nhel, double nsvahl, complex128* v);
-void _vx_no_BRST_check_massive_pp_nonzero(double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt, complex128* v);
-void _vx_no_BRST_check_massive_pp_nonzero_pt_nonzero(double* p, double nhel, double hel0, double nsvahl, double pp, double pt, double emp, complex128* v);
-void _vx_no_BRST_check_massive_pp_nonzero_pt_zero(double* p, double nhel, double nsvahl, complex128* v);
-void _vx_no_BRST_check_massless(double* p, double nhel, double nsv, complex128* v);
-void _vx_no_BRST_check_massless_pt_nonzero(double* p, double nhel, double nsv, double pp, double pt, complex128* v);
-void _vx_no_BRST_check_massless_pt_zero(double* p, double nhel, double nsv, complex128* v);
+void _vx_no_BRST_check_massive_pp_nonzero(const double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt, complex128* v);
+void _vx_no_BRST_check_massive_pp_nonzero_pt_nonzero(const double* p, double nhel, double hel0, double nsvahl, double pp, double pt, double emp, complex128* v);
+void _vx_no_BRST_check_massive_pp_nonzero_pt_zero(const double* p, double nhel, double nsvahl, complex128* v);
+void _vx_no_BRST_check_massless(const double* p, double nhel, double nsv, complex128* v);
+void _vx_no_BRST_check_massless_pt_nonzero(const double* p, double nhel, double nsv, double pp, double pt, complex128* v);
+void _vx_no_BRST_check_massless_pt_zero(const double* p, double nhel, double nsv, complex128* v);
 
 void VVV1P0_1(complex128* V2, complex128* V3, const complex128 COUP, double M1, double W1, complex128*);
 void FFV1_0(complex128* F1, complex128* F2, complex128* V3, const complex128 COUP, complex128& amp);
@@ -123,25 +123,11 @@ void matrix(const double* all_ps, const double* hel, const double mdl_MT, const 
     // Begin code
     
     for (int i = 0; i < nevents; i++) {
-        double all_ps_0[4];
-        double all_ps_1[4];
-        double all_ps_2[4];
-        double all_ps_3[4];
-        for (int j = 0; j < 4; j++) {
-            all_ps_0[j] = all_ps[16 * i + j];
-            all_ps_1[j] = all_ps[16 * i + j + 4];
-            all_ps_2[j] = all_ps[16 * i + j + 8];
-            all_ps_3[j] = all_ps[16 * i + j + 12];
-        }
-        complex128 w0[6];
-        complex128 w1[6];
-        complex128 w2[6];
-        complex128 w3[6];
-        complex128 w4[6];
-        vxxxxx(all_ps_0, ZERO, hel[0], -1, w0);
-        vxxxxx(all_ps_1, ZERO, hel[1], -1, w1);
-        oxxxxx(all_ps_2, mdl_MT, hel[2], +1, w2);
-        ixxxxx(all_ps_3, mdl_MT, hel[3], -1, w3);
+        complex128 w0[6], w1[6], w2[6], w3[6], w4[6];
+        vxxxxx(all_ps+(16*i), ZERO, hel[0], -1, w0);
+        vxxxxx(all_ps+(16*i+4), ZERO, hel[1], -1, w1);
+        oxxxxx(all_ps+(16*i+8), mdl_MT, hel[2], +1, w2);
+        ixxxxx(all_ps+(16*i+12), mdl_MT, hel[3], -1, w3);
         VVV1P0_1(w0, w1, GC_10, ZERO, ZERO, w4);
         
         // Amplitude(s) for diagram number 1
@@ -161,10 +147,7 @@ void matrix(const double* all_ps, const double* hel, const double mdl_MT, const 
         complex128 amp2;
         FFV1_0(w4, w2, w1, GC_11, amp2);
         
-        complex128 jamp[2];
-        
-        jamp[0] =  complex128(0, 1) * amp0 - amp1;
-        jamp[1] = -complex128(0, 1) * amp0 - amp2;
+        complex128 jamp[2] = {complex128(0, 1) * amp0 - amp1, -complex128(0, 1) * amp0 - amp2};
         
         complex128 ret(0, 0);
         for (int a = 0; a < 2; a++) {
@@ -177,7 +160,7 @@ void matrix(const double* all_ps, const double* hel, const double mdl_MT, const 
     }
 }
 
-void _ix_massive(double* p, double fmass, double nsf, double nh, complex128* v) {
+void _ix_massive(const double* p, double fmass, double nsf, double nh, complex128* v) {
     double pp = std::min(p[0], sqrt(p[1] * p[1] + p[2] * p[2] + p[3] * p[3]));
     
     int ip = (int)(1 + nh) / 2;
@@ -191,7 +174,7 @@ void _ix_massive(double* p, double fmass, double nsf, double nh, complex128* v) 
     }
 }
 
-void _ix_massless(double* p, double nhel, double nsf, double nh, complex128* v) {
+void _ix_massless(const double* p, double nhel, double nsf, double nh, complex128* v) {
     double sqp0p3 = sqrt(std::max(p[0] + p[3], 0.0)) * nsf;
     
     complex128 chi1;
@@ -212,7 +195,7 @@ void _ix_massless(double* p, double nhel, double nsf, double nh, complex128* v) 
     }
 }
 
-void _ox_massless(double* p, double nhel, double nsf, double nh, complex128* v) {
+void _ox_massless(const double* p, double nhel, double nsf, double nh, complex128* v) {
     double sqp0p3 = sqrt(std::max(p[0] + p[3], 0.0)) * nsf;
     double mult[] = {1, 1, -1, 1};
     
@@ -239,7 +222,7 @@ void _ox_massless(double* p, double nhel, double nsf, double nh, complex128* v) 
     }
 }
 
-void _ox_massive(double* p, double fmass, double nhel, double nsf, double nh, complex128* v) {
+void _ox_massive(const double* p, double fmass, double nhel, double nsf, double nh, complex128* v) {
     double pp = std::min(p[0], sqrt(p[1] * p[1] + p[2] * p[2] + p[3] * p[3]));
     
     int ip = -((int)(1 - nh) / 2) * (int)nhel;
@@ -264,7 +247,7 @@ void _ox_massive_pp_zero(double fmass, double nsf, int ip, int im, complex128* v
     v[3] = complex128((double)ip * sqm[abs(ip)], 0.0);
 }
 
-void _ox_massive_pp_nonzero(double* p, double fmass, double nsf, double nh, double pp, complex128* v) {
+void _ox_massive_pp_nonzero(const double* p, double fmass, double nsf, double nh, double pp, complex128* v) {
     double sf[] = {(1 + nsf + (1 - nsf) * nh) * 0.5, (1 + nsf - (1 - nsf) * nh) * 0.5};
     double omega[] = {sqrt(p[0] + pp), fmass / (sqrt(p[0] + pp))};
     
@@ -290,15 +273,15 @@ void _ox_massive_pp_nonzero(double* p, double fmass, double nsf, double nh, doub
     v[3] = complex128(sfomeg[0], 0.0) * chi[ip];
 }
 
-void _ix_massless_sqp0p3_zero(double* p, double nhel, complex128& val) {
+void _ix_massless_sqp0p3_zero(const double* p, double nhel, complex128& val) {
     val = complex128(-nhel * sqrt(2.0 * p[0]), 0.0);
 }
 
-void _ix_massless_sqp0p3_nonzero(double* p, double nh, double sqp0p3, complex128& val) {
+void _ix_massless_sqp0p3_nonzero(const double* p, double nh, double sqp0p3, complex128& val) {
     val = complex128(nh * p[1] / sqp0p3, p[2] / sqp0p3);
 }
 
-void _ix_massive_pp_nonzero(double* p, double fmass, double nsf, double nh, int ip, int im, double pp, complex128* v) {
+void _ix_massive_pp_nonzero(const double* p, double fmass, double nsf, double nh, int ip, int im, double pp, complex128* v) {
     double sf[] = {(1 + nsf + (1 - nsf) * nh) * 0.5, (1 + nsf - (1 - nsf) * nh) * 0.5};
     double omega[] = {sqrt(p[0] + pp), fmass / (sqrt(p[0] + pp))};
     
@@ -335,7 +318,7 @@ void _ix_massless_nh_not_one(complex128* chi, complex128* v) {
     v[3] = CZERO;
 }
 
-void _vx_BRST_check(double* p, double vmass, complex128* v) {
+void _vx_BRST_check(const double* p, double vmass, complex128* v) {
     if (vmass == 0) {
         _vx_BRST_check_massless(p, v);
     }
@@ -344,7 +327,7 @@ void _vx_BRST_check(double* p, double vmass, complex128* v) {
     }
 }
 
-void _vx_no_BRST_check(double* p, double vmass, double nhel, double nsv, double hel0, double nsvahl, double pp, double pt, complex128* v) {
+void _vx_no_BRST_check(const double* p, double vmass, double nhel, double nsv, double hel0, double nsvahl, double pp, double pt, complex128* v) {
     if (vmass != 0) {
         _vx_no_BRST_check_massive(
                             p, vmass, nhel, hel0, nsvahl, pp, pt, v
@@ -355,19 +338,19 @@ void _vx_no_BRST_check(double* p, double vmass, double nhel, double nsv, double 
     }
 }
 
-void _vx_BRST_check_massless(double* p, complex128* v) {
+void _vx_BRST_check_massless(const double* p, complex128* v) {
     for (int i = 0; i < 4; i++) {
         v[i] = p[i]/p[0];
     }
 }
 
-void _vx_BRST_check_massive(double* p, double vmass, complex128* v) {
+void _vx_BRST_check_massive(const double* p, double vmass, complex128* v) {
     for (int i = 0; i < 4; i++) {
         v[i] = p[i]/vmass;
     }
 }
 
-void _vx_no_BRST_check_massive(double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt, complex128* v) {
+void _vx_no_BRST_check_massive(const double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt, complex128* v) {
     if (pp == 0) {
         _vx_no_BRST_check_massive_pp_zero(nhel, nsvahl, v);
     }
@@ -386,7 +369,7 @@ void _vx_no_BRST_check_massive_pp_zero(double nhel, double nsvahl, complex128* v
     v[3] = complex128(hel0, 0.0);
 }
 
-void _vx_no_BRST_check_massive_pp_nonzero(double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt, complex128* v) {
+void _vx_no_BRST_check_massive_pp_nonzero(const double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt, complex128* v) {
     double emp = p[0] / (vmass * pp);
     complex128 v2 = complex128(hel0 * pp / vmass, 0.0);
     complex128 v5 = complex128(hel0 * p[3] * emp + nhel * pt / pp * SQH, 0.0);
@@ -404,18 +387,18 @@ void _vx_no_BRST_check_massive_pp_nonzero(double* p, double vmass, double nhel, 
     v[3] = v5;
 }
 
-void _vx_no_BRST_check_massive_pp_nonzero_pt_nonzero(double* p, double nhel, double hel0, double nsvahl, double pp, double pt, double emp, complex128* v) {
+void _vx_no_BRST_check_massive_pp_nonzero_pt_nonzero(const double* p, double nhel, double hel0, double nsvahl, double pp, double pt, double emp, complex128* v) {
     double pzpt = p[3] / (pp * pt) * SQH * nhel;
     v[0] = complex128(hel0 * p[1] * emp - p[1] * pzpt, -nsvahl * p[2] / pt * SQH);
     v[1] = complex128(hel0 * p[2] * emp - p[2] * pzpt, nsvahl * p[1] / pt * SQH);
 }
 
-void _vx_no_BRST_check_massive_pp_nonzero_pt_zero(double* p, double nhel, double nsvahl, complex128* v) {
+void _vx_no_BRST_check_massive_pp_nonzero_pt_zero(const double* p, double nhel, double nsvahl, complex128* v) {
     v[0] = complex128(-nhel * SQH, 0);
     v[1] = complex128(0.0, nsvahl * signvec(SQH, p[3]));
 }
 
-void _vx_no_BRST_check_massless(double* p, double nhel, double nsv, complex128* v) {
+void _vx_no_BRST_check_massless(const double* p, double nhel, double nsv, complex128* v) {
     double pp = p[0];
     double pt = sqrt(p[1] * p[1] + p[2] * p[2]);
     
@@ -436,14 +419,14 @@ void _vx_no_BRST_check_massless(double* p, double nhel, double nsv, complex128* 
     v[3] = v5;
 }
 
-void _vx_no_BRST_check_massless_pt_nonzero(double* p, double nhel, double nsv, double pp, double pt, complex128* v) {
+void _vx_no_BRST_check_massless_pt_nonzero(const double* p, double nhel, double nsv, double pp, double pt, complex128* v) {
     double pzpt = p[3] / (pp * pt) * SQH * nhel;
     
     v[0] = complex128(-p[1] * pzpt, -nsv * p[2] / pt * SQH);
     v[1] = complex128(-p[2] * pzpt, nsv * p[1] / pt * SQH);
 }
 
-void _vx_no_BRST_check_massless_pt_zero(double* p, double nhel, double nsv, complex128* v) {
+void _vx_no_BRST_check_massless_pt_zero(const double* p, double nhel, double nsv, complex128* v) {
     v[0] = complex128(-nhel * SQH, 0);
     v[1] = complex128(0, nsv * signvec(SQH, p[3]));
 }
@@ -458,7 +441,7 @@ double signvec(double x, double y) {
     return sign(x, y);
 }
 
-void vxxxxx(double* p, double vmass, double nhel, double nsv, complex128* ret) {
+void vxxxxx(const double* p, double vmass, double nhel, double nsv, complex128* ret) {
     complex128 v0 = complex128(p[0] * nsv, p[3] * nsv);
     complex128 v1 = complex128(p[1] * nsv, p[2] * nsv);
     
@@ -484,7 +467,7 @@ void vxxxxx(double* p, double vmass, double nhel, double nsv, complex128* ret) {
         ret[i+2] = v[i];
 }
 
-void ixxxxx(double* p, double fmass, double nhel, double nsf, complex128* ret) {
+void ixxxxx(const double* p, double fmass, double nhel, double nsf, complex128* ret) {
     complex128 v0 = complex128(-p[0] * nsf, -p[3] * nsf);
     complex128 v1 = complex128(-p[1] * nsf, -p[2] * nsf);
     
@@ -505,7 +488,7 @@ void ixxxxx(double* p, double fmass, double nhel, double nsf, complex128* ret) {
         ret[i+2] = v[i];
 }
 
-void oxxxxx(double* p, double fmass, double nhel, double nsf, complex128* ret) {
+void oxxxxx(const double* p, double fmass, double nhel, double nsf, complex128* ret) {
     complex128 v0 = complex128(p[0] * nsf, p[3] * nsf);
     complex128 v1 = complex128(p[1] * nsf, p[2] * nsf);
     
@@ -674,13 +657,8 @@ class VxxxxxOp : public OpKernel {
     std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
     
     for (int i = 0; i < nevents; i++) {
-        double all_ps_0[4];
-        for (int j = 0; j < 4; j++) {
-            all_ps_0[j] = all_ps[16 * i + j];
-        } 
         complex128 w0[6];
-        vxxxxx(all_ps_0, *zero, *hel, *m1, w0);
-        //auto w0 = vxxxxx(all_ps_0, *zero, *hel, *m1);
+        vxxxxx(all_ps+(16*i), *zero, *hel, *m1, w0);
         
         for (int j = 0; j < output_slice_size; j++) {
             jamp[j * nevents + i] = w0[j];
@@ -740,13 +718,8 @@ class OxxxxxOp : public OpKernel {
     std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
     
     for (int i = 0; i < nevents; i++) {
-        double all_ps_2[4];
-        for (int j = 0; j < 4; j++) {
-            all_ps_2[j] = all_ps[16 * i + j + 8];
-        }
         complex128 w0[6];
-        oxxxxx(all_ps_2, *zero, *hel, *m1, w0);
-        //auto w0 = oxxxxx(all_ps_2, *zero, *hel, *m1);
+        oxxxxx(all_ps+(16*i+8), *zero, *hel, *m1, w0);
         
         for (int j = 0; j < output_slice_size; j++) {
             jamp[j * nevents + i] = w0[j];
@@ -806,13 +779,8 @@ class IxxxxxOp : public OpKernel {
     std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
     
     for (int i = 0; i < nevents; i++) {
-        double all_ps_3[4];
-        for (int j = 0; j < 4; j++) {
-            all_ps_3[j] = all_ps[16 * i + j + 12];
-        } 
         complex128 w0[6];
-        ixxxxx(all_ps_3, *zero, *hel, *m1, w0);
-        //auto w0 = ixxxxx(all_ps_3, *zero, *hel, *m1);
+        ixxxxx(all_ps+(16*i+12), *zero, *hel, *m1, w0);
         
         for (int j = 0; j < output_slice_size; j++) {
             jamp[j * nevents + i] = w0[j];
@@ -887,12 +855,8 @@ class VxnobrstcheckOp : public OpKernel {
     std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
     
     for (int i = 0; i < nevents; i++) {
-        double all_ps_0[4];
-        for (int j = 0; j < 4; j++) {
-            all_ps_0[j] = all_ps[16 * i + j];
-        } 
         complex128 w0[6];
-        _vx_no_BRST_check(all_ps_0, *vmass, *nhel, *nsv, *hel0, *nsvahl, *pp, *pt, w0);
+        _vx_no_BRST_check(all_ps+(16*i), *vmass, *nhel, *nsv, *hel0, *nsvahl, *pp, *pt, w0);
         
         for (int j = 0; j < output_slice_size; j++) {
             jamp[i * output_slice_size + j] = w0[j];

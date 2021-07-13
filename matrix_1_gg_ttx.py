@@ -35,6 +35,7 @@ from aloha_1_gg_ttx import *
 import cProfile, pstats, io
 from pstats import SortKey
 import time
+import psutil
 
 
 def get_model_param(model, param_card_path):
@@ -189,48 +190,49 @@ class Matrix_1_gg_ttx(object):
         # ----------
         nevts = tf.shape(all_ps, out_type=DTYPEINT)[0]
         ans = tf.zeros(nevts, dtype=DTYPE)
-        matrixOp = tf.load_op_library('./matrix.so')
-        ans2 = tf.zeros(nevts, dtype=DTYPE)
-        
         
         start = time.time()
         for hel in self.helicities:
             ans += self.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11)
         end = time.time()
         print(f"time (python) (s): {end-start}")
+        print(process.memory_info().rss)
+        
+        return (ans/self.denominator)
+        
+    @tf.function(input_signature=smatrix_signature)
+    def csmatrix(self,all_ps,mdl_MT,mdl_WT,GC_10,GC_11):
+        #  
+        #  MadGraph5_aMC@NLO v. 3.1.1, 2021-05-28
+        #  By the MadGraph5_aMC@NLO Development Team
+        #  Visit launchpad.net/madgraph5 and amcatnlo.web.cern.ch
+        # 
+        # MadGraph5_aMC@NLO StandAlone Version
+        # 
+        # Returns amplitude squared summed/avg over colors
+        # and helicities
+        # for the point in phase space P(0:3,NEXTERNAL)
+        #  
+        # Process: g g > t t~ WEIGHTED<=2 @1
+        #  
+        # Clean additional output
+        #
+        ###self.clean()
+        # ----------
+        # BEGIN CODE
+        # ----------
+        nevts = tf.shape(all_ps, out_type=DTYPEINT)[0]
+        matrixOp = tf.load_op_library('./matrix.so')
+        ans2 = tf.zeros(nevts, dtype=DTYPE)
+        
         start = time.time()
         for hel in self.helicities:
             ans2 += matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, ans2)
         end = time.time()
         print(f"time (Op) (s): {end-start}")
-        """
-        for hel in self.helicities:
-            pr = cProfile.Profile()
-            pr.enable()
-            # ... do something ...
-            ans += self.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11)
-            pr.disable()
-            s = io.StringIO()
-            sortby = SortKey.CUMULATIVE
-            ps = pstats.Stats(pr, stream=s).strip_dirs().sort_stats(sortby)
-            ps.print_stats()
-            print(s.getvalue())
-            #ans2 += matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, ans2)
-            
-        for hel in self.helicities:
-            pr = cProfile.Profile()
-            pr.enable()
-            # ... do something ...
-            ans2 += matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, ans2)
-            pr.disable()
-            s = io.StringIO()
-            sortby = SortKey.CUMULATIVE
-            ps = pstats.Stats(pr, stream=s).strip_dirs().sort_stats(sortby)
-            ps.print_stats()
-            print(s.getvalue())
-        """
+        print(process.memory_info().rss)
         
-        return (ans/self.denominator)
+        return (ans2/self.denominator)
 
     @tf.function(input_signature=matrix_signature)
     def matrix(self,all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11):
@@ -343,7 +345,12 @@ if __name__ == "__main__":
     
     model_params.freeze_alpha_s(0.118)
     
+    process = psutil.Process(os.getpid())
+    
     wgt_set = matrix.smatrix(all_ps, *model_params.evaluate(None))
+    
+    matrix.csmatrix(all_ps, *model_params.evaluate(None))
+    print(process.memory_info().rss)
     
     print("All good!")
     for i, (p, wgt) in enumerate(zip(all_ps, wgt_set)):
