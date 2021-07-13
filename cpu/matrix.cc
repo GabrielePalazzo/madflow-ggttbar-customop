@@ -99,7 +99,7 @@ class MatrixOp : public OpKernel {
                                                      &output_tensor));
     auto output_flat = output_tensor->flat<double>();
     
-    matrix(all_ps, hel, mdl_MT[0], *mdl_WT, *GC_10, *GC_11, output_flat);
+    matrix(all_ps, hel, *mdl_MT, *mdl_WT, *GC_10, *GC_11, output_flat);
   }
 };
 
