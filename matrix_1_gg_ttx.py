@@ -191,12 +191,12 @@ class Matrix_1_gg_ttx(object):
         nevts = tf.shape(all_ps, out_type=DTYPEINT)[0]
         ans = tf.zeros(nevts, dtype=DTYPE)
         
-        start = time.time()
         for hel in self.helicities:
+            start = time.time()
             ans += self.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11)
-        end = time.time()
-        print(f"time (python) (s): {end-start}")
-        print(process.memory_info().rss)
+            end = time.time()
+            tf.print(f"(Python code: took {end-start:.5f} s)")
+        #print(process.memory_info().rss)
         
         return (ans/self.denominator)
         
@@ -225,12 +225,12 @@ class Matrix_1_gg_ttx(object):
         matrixOp = tf.load_op_library('./matrix.so')
         ans2 = tf.zeros(nevts, dtype=DTYPE)
         
-        start = time.time()
         for hel in self.helicities:
+            start = time.time()
             ans2 += matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, ans2)
-        end = time.time()
-        print(f"time (Op) (s): {end-start}")
-        print(process.memory_info().rss)
+            end = time.time()
+            tf.print(f"(Custom Operator: took {end-start:.5f} s)")
+        #print(process.memory_info().rss)
         
         return (ans2/self.denominator)
 
@@ -350,7 +350,7 @@ if __name__ == "__main__":
     wgt_set = matrix.smatrix(all_ps, *model_params.evaluate(None))
     
     matrix.csmatrix(all_ps, *model_params.evaluate(None))
-    print(process.memory_info().rss)
+    #print(process.memory_info().rss)
     
     print("All good!")
     for i, (p, wgt) in enumerate(zip(all_ps, wgt_set)):
