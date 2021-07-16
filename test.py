@@ -301,7 +301,7 @@ def matrixtest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp):
     #end = time.time()
     #print(f"time (python) (s): {end-start}")
     
-    cres = MatrixOp.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11, res)
+    cres = MatrixOp.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11)
     """
     cw0 = MatrixOp.vxxxxx(all_ps,ZERO,hel[0],float_me(-1), w0)
     cw1 = MatrixOp.vxxxxx(all_ps,ZERO,hel[1],float_me(-1), w1)

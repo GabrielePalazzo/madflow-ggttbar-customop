@@ -235,7 +235,7 @@ class Matrix_1_gg_ttx(object):
         
         for hel in self.helicities:
             #start = time.time()
-            ans2 += matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, ans2)
+            ans2 += matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11)
             #end = time.time()
             #tf.print(f"(Custom Operator: took {end-start:.5f} s)")
             #tf.print("Custom Operator memory usage:", process.memory_info().rss)

@@ -19,17 +19,16 @@ REGISTER_OP("Matrix")
     .Input("mdl_wt: double")
     .Input("gc_10: complex128")
     .Input("gc_11: complex128")
-    .Input("correct_shape: double")
     .Output("matrix_element: double")
     .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
-      c->set_output(0, c->input(6));
+      c->set_output(0, c->MakeShape({c->Dim(c->input(0), 0)}));
       return Status::OK();
     });
 
 //int nevents = 2;
 double SQH = sqrt(0.5);
 complex128 CZERO = complex128(0.0, 0.0);
-void matrix(const double*, const double*, const double*, const double*, const complex128*, const complex128*, Eigen::TensorMap<Eigen::Tensor<double, 1, 1, long int>, 16, Eigen::MakePointer>, int);
+void matrix(const double*, const double*, const double*, const double*, const complex128*, const complex128*, double*, int);
 void vxxxxx(const double* p, double fmass, double nhel, double nsf, complex128*);
 void ixxxxx(const double* p, double fmass, double nhel, double nsf, complex128*);
 void oxxxxx(const double* p, double fmass, double nhel, double nsf, complex128*);
@@ -90,25 +89,24 @@ class MatrixOp : public OpKernel {
     
     const Tensor& GC_11_tensor = context->input(5);
     auto GC_11 = GC_11_tensor.flat<complex128>().data();
-    
-    const Tensor& correct_shape = context->input(6);
 
+    int nevents = all_ps_tensor.shape().dim_size(0);
+    
     // Create an output tensor
     Tensor* output_tensor = NULL;
-    OP_REQUIRES_OK(context, context->allocate_output(0, correct_shape.shape(),
+    OP_REQUIRES_OK(context, context->allocate_output(0, TensorShape({nevents}),
                                                      &output_tensor));
     auto output_flat = output_tensor->flat<double>();
     
-    int nevents = all_ps_tensor.shape().dim_size(0);
     //std::cout << nevents << " " << output_tensor->shape().dim_size(0) << std::endl;
     //clock_t t = clock();
-    matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, output_flat, nevents);
+    matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, output_flat.data(), nevents);
     //std::cout << (double)(clock() - t)/CLOCKS_PER_SEC << std::endl;
   }
 };
 
 void matrix(const double* all_ps, const double* hel, const double* mdl_MT, const double* mdl_WT, const complex128* GC_10, const complex128* GC_11, 
-            Eigen::TensorMap<Eigen::Tensor<double, 1, 1, long int>, 16, Eigen::MakePointer> output_flat, int nevents) {
+            double* output_flat, int nevents) {
     int ngraphs = 3;
     int nwavefuncs = 5;
     int ncolor = 2;
@@ -160,7 +158,7 @@ void matrix(const double* all_ps, const double* hel, const double* mdl_MT, const
                 ret += (jamp[a] * cf[a * 2 + b]) * (std::conj(jamp[b]) / denom[0]);
             }
         }
-        output_flat(i) = ret.real();
+        output_flat[i] = ret.real();
     }
 }
 
