@@ -115,7 +115,15 @@ smatrix_signature = [
         tf.TensorSpec(shape=[None], dtype=DTYPECOMPLEX),
         tf.TensorSpec(shape=[None], dtype=DTYPECOMPLEX)
         ]
-
+"""    
+csmatrix_signature = [
+        tf.TensorSpec(shape=[None,4,4], dtype=DTYPE),
+        tf.TensorSpec(shape=[], dtype=DTYPE),
+        tf.TensorSpec(shape=[], dtype=DTYPE),
+        tf.TensorSpec(shape=[None], dtype=DTYPECOMPLEX),
+        tf.TensorSpec(shape=[None], dtype=DTYPECOMPLEX)
+        ]
+"""
 
 matrix_signature = [
         tf.TensorSpec(shape=[None,4,4], dtype=DTYPE),
@@ -192,11 +200,11 @@ class Matrix_1_gg_ttx(object):
         ans = tf.zeros(nevts, dtype=DTYPE)
         
         for hel in self.helicities:
-            start = time.time()
+            #start = time.time()
             ans += self.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11)
-            end = time.time()
-            tf.print(f"(Python code: took {end-start:.5f} s)")
-            tf.print("Python code memory usage:", process.memory_info().rss)
+            #end = time.time()
+            #tf.print(f"(Python code: took {end-start:.5f} s)")
+            #tf.print("Python code memory usage:", process.memory_info().rss)
         
         return (ans/self.denominator)
         
@@ -226,11 +234,11 @@ class Matrix_1_gg_ttx(object):
         ans2 = tf.zeros(nevts, dtype=DTYPE)
         
         for hel in self.helicities:
-            start = time.time()
+            #start = time.time()
             ans2 += matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, ans2)
-            end = time.time()
-            tf.print(f"(Custom Operator: took {end-start:.5f} s)")
-            tf.print("Custom Operator memory usage:", process.memory_info().rss)
+            #end = time.time()
+            #tf.print(f"(Custom Operator: took {end-start:.5f} s)")
+            #tf.print("Custom Operator memory usage:", process.memory_info().rss)
         
         return (ans2/self.denominator)
 
@@ -280,7 +288,7 @@ class Matrix_1_gg_ttx(object):
         # Amplitude(s) for diagram number 3
         amp2= FFV1_0(w4,w2,w1,GC_11)
 
-        jamp = tf.stack([complex_tf(0,1)*amp0-amp1,-complex(0,1)*amp0-amp2], axis=0)
+        jamp = tf.stack([complex_tf(0,1)*amp0-amp1, -complex(0,1)*amp0-amp2], axis=0)
 
         ret = tf.einsum("ie, ij, je -> e", jamp, cf, tf.math.conj(jamp)/tf.reshape(denom, (ncolor, 1)))
         
@@ -347,9 +355,15 @@ if __name__ == "__main__":
     
     process = psutil.Process(os.getpid())
     
+    start = time.time()
     wgt_set = matrix.smatrix(all_ps, *model_params.evaluate(None))
+    end = time.time()
+    tf.print(f"(Python: {end-start:.5f} s)")
     
+    start = time.time()
     matrix.csmatrix(all_ps, *model_params.evaluate(None))
+    end = time.time()
+    tf.print(f"(Custom Operator: {end-start:.5f} s)")
     #print(process.memory_info().rss)
     
     print("All good!")

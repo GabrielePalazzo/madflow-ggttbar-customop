@@ -5,7 +5,7 @@
 #include "tensorflow/cc/ops/math_ops.h"
 
 //#include <vector>
-#include <time.h> 
+//#include <time.h> 
 
 using namespace tensorflow;
 
@@ -26,10 +26,10 @@ REGISTER_OP("Matrix")
       return Status::OK();
     });
 
-int nevents = 2;
+//int nevents = 2;
 double SQH = sqrt(0.5);
 complex128 CZERO = complex128(0.0, 0.0);
-void matrix(const double*, const double*, const double*, const double*, const complex128*, const complex128*, Eigen::TensorMap<Eigen::Tensor<double, 1, 1, long int>, 16, Eigen::MakePointer>);
+void matrix(const double*, const double*, const double*, const double*, const complex128*, const complex128*, Eigen::TensorMap<Eigen::Tensor<double, 1, 1, long int>, 16, Eigen::MakePointer>, int);
 void vxxxxx(const double* p, double fmass, double nhel, double nsf, complex128*);
 void ixxxxx(const double* p, double fmass, double nhel, double nsf, complex128*);
 void oxxxxx(const double* p, double fmass, double nhel, double nsf, complex128*);
@@ -99,12 +99,16 @@ class MatrixOp : public OpKernel {
                                                      &output_tensor));
     auto output_flat = output_tensor->flat<double>();
     
-    matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, output_flat);
+    int nevents = all_ps_tensor.shape().dim_size(0);
+    //std::cout << nevents << " " << output_tensor->shape().dim_size(0) << std::endl;
+    //clock_t t = clock();
+    matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, output_flat, nevents);
+    //std::cout << (double)(clock() - t)/CLOCKS_PER_SEC << std::endl;
   }
 };
 
 void matrix(const double* all_ps, const double* hel, const double* mdl_MT, const double* mdl_WT, const complex128* GC_10, const complex128* GC_11, 
-            Eigen::TensorMap<Eigen::Tensor<double, 1, 1, long int>, 16, Eigen::MakePointer> output_flat) {
+            Eigen::TensorMap<Eigen::Tensor<double, 1, 1, long int>, 16, Eigen::MakePointer> output_flat, int nevents) {
     int ngraphs = 3;
     int nwavefuncs = 5;
     int ncolor = 2;
@@ -153,7 +157,7 @@ void matrix(const double* all_ps, const double* hel, const double* mdl_MT, const
         for (int a = 0; a < 2; a++) {
             for (int b = 0; b < 2; b++) {
                 // ret = tf.einsum("ae, ab, be -> e", jamp, cf, tf.math.conj(jamp)/tf.reshape(denom, (ncolor, 1)))
-                ret += (jamp[a] * cf[a * 2 + b]) * (std::conj(jamp[b]) / denom[i]);
+                ret += (jamp[a] * cf[a * 2 + b]) * (std::conj(jamp[b]) / denom[0]);
             }
         }
         output_flat(i) = ret.real();
@@ -653,6 +657,7 @@ class VxxxxxOp : public OpKernel {
     
     // Begin code
     
+    int nevents = all_ps_tensor.shape().dim_size(0);
     int output_slice_size = 6;
     std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
     
@@ -714,6 +719,7 @@ class OxxxxxOp : public OpKernel {
     
     // Begin code
     
+    int nevents = all_ps_tensor.shape().dim_size(0);
     int output_slice_size = 6;
     std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
     
@@ -775,6 +781,7 @@ class IxxxxxOp : public OpKernel {
     
     // Begin code
     
+    int nevents = all_ps_tensor.shape().dim_size(0);
     int output_slice_size = 6;
     std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
     
@@ -851,6 +858,8 @@ class VxnobrstcheckOp : public OpKernel {
     auto output_flat = output_tensor->flat<complex128>();
     
     // Begin code
+    
+    int nevents = all_ps_tensor.shape().dim_size(0);
     int output_slice_size = 4;
     std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
     
@@ -926,6 +935,8 @@ class Vvv1p01Op : public OpKernel {
     auto output_flat = output_tensor->flat<complex128>();
     
     // Begin code
+    
+    int nevents = all_ps_tensor.shape().dim_size(0);
     int output_slice_size = 6;
     std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
     
@@ -1010,6 +1021,8 @@ class Ffv10Op : public OpKernel {
     auto output_flat = output_tensor->flat<complex128>();
     
     // Begin code
+    
+    int nevents = all_ps_tensor.shape().dim_size(0);
     int output_slice_size = 1;
     int vector_slice_size = 6;
     std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
@@ -1098,6 +1111,8 @@ class Ffv11Op : public OpKernel {
     auto output_flat = output_tensor->flat<complex128>();
     
     // Begin code
+    
+    int nevents = all_ps_tensor.shape().dim_size(0);
     int output_slice_size = 6;
     int vector_slice_size = 6;
     std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
@@ -1185,6 +1200,8 @@ class Ffv12Op : public OpKernel {
     auto output_flat = output_tensor->flat<complex128>();
     
     // Begin code
+    
+    int nevents = all_ps_tensor.shape().dim_size(0);
     int output_slice_size = 6;
     int vector_slice_size = 6;
     std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
@@ -1253,6 +1270,8 @@ class StackOp : public OpKernel {
     auto output_flat = output_tensor->flat<complex128>();
     
     // Begin code
+    
+    int nevents = amp0_tensor.shape().dim_size(0);
     int output_slice_size = 2;
     std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
     
