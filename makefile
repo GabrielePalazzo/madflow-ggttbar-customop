@@ -7,6 +7,8 @@ TF_LFLAGS=$(shell python3 -c 'import tensorflow as tf; print(" ".join(tf.sysconf
 CUDA_LFLAGS= -x cu -Xcompiler -fPIC
 CUDA_PATH=/usr/local/cuda-11.3
 
+OMP_CFLAGS = -fopenmp
+
 CSRCS = $(wildcard cpu/*.cc)
 GSRCS = $(wildcard gpu/*.cc)
 CUDASRC = $(wildcard gpu/*.cu.cc)
@@ -25,7 +27,7 @@ TARGETS=$(TARGET_LIB)
 OBJECT_SRCS = $(CSRCS:.cc=.o)
 OBJECT_SRCS_CUDA = $(GSRCS:.cc=.cudao)
 
-CFLAGS = ${TF_CFLAGS} -fPIC -O2 -std=c++11
+CFLAGS = ${TF_CFLAGS} ${OMP_CFLAGS} -fPIC -O2 -std=c++11
 CFLAGS_CUDA = $(CFLAGS) -D GOOGLE_CUDA=1 -I$(CUDA_PATH)/include
 CFLAGS_NVCC = ${TF_CFLAGS} -O2 -std=c++11 -D GOOGLE_CUDA=1 -x cu -Xcompiler -fPIC -DNDEBUG --expt-relaxed-constexpr
 

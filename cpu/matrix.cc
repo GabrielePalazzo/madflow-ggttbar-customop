@@ -4,6 +4,8 @@
 #include "tensorflow/cc/ops/array_ops.h"
 #include "tensorflow/cc/ops/math_ops.h"
 
+#include <omp.h>
+
 //#include <vector>
 //#include <time.h> 
 
@@ -123,7 +125,7 @@ void matrix(const double* all_ps, const double* hel, const double* mdl_MT, const
     cf[3] = 16;
     
     // Begin code
-    
+    #pragma omp parallel for
     for (int i = 0; i < nevents; i++) {
         complex128 w0[6], w1[6], w2[6], w3[6], w4[6];
         vxxxxx(all_ps+(16*i), ZERO, hel[0], -1, w0);
