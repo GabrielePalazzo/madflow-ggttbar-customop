@@ -59,6 +59,24 @@ logger = logging.getLogger(__name__)
 _flav_dict = {"g": 21, "d": 1, "u": 2, "s": 3, "c": 4, "b": 5, "t": 6}
 
 
+def areclose(t1, t2):
+    dist = tf.fill(tf.shape(t1), float_me(0.000001))
+    #dist = tf.fill(tf.shape(t1), float_me(0.002))
+    
+    # Check if the real parts are close
+    
+    result = tf.math.less_equal(tf.math.abs(tf.math.real(t1 - t2)), dist)
+    #tf.print(t1-t2, t1, t2)
+    #tf.print(tf.math.equal(result, True))
+    tf.debugging.assert_equal(result, True)
+    
+    # Check if the imaginary parts are close
+    
+    result = tf.math.less_equal(tf.math.abs(tf.math.imag(t1 - t2)), dist)
+    
+    #tf.print(tf.math.equal(result, True))
+    tf.debugging.assert_equal(result, True)
+
 def _read_flav(flav_str):
     particle = _flav_dict.get(flav_str[0])
     if particle is None:
@@ -408,7 +426,22 @@ def madflow_main(args=None, quick_return=False):
             # Compute each matrix element
             ret = 0.0
             for i, (matrix, model) in enumerate(zip(matrices, models)):
+                
                 smatrix = matrix.smatrix(all_ps, *model.evaluate(alpha_s))
+                #csmatrix = matrix.csmatrix(all_ps, *model.evaluate(alpha_s))
+                #tf.print(all_ps, smatrix, csmatrix)
+                
+                #tf.where(tf.math.less_equal(smatrix - csmatrix, tf.fill(tf.shape(smatrix), float_me(0.0001))), tf.print(''), tf.print(smatrix, csmatrix))
+                #for i in range(100):
+                #    print(smatrix[i])
+                #areclose(smatrix, csmatrix)
+                """
+                dist = tf.fill(tf.shape(smatrix), float_me(0.0000001))
+                res = tf.math.less_equal(tf.math.abs(smatrix - csmatrix), dist)
+                print(all(tf.equal(res, True)))
+                #tf.where(res, print('y'), tf.print(smatrix, csmatrix))
+                #print(smatrix, csmatrix)
+                """
                 if not args.no_pdf:
                     p1 = tf.gather(proton_1, gather_1[i], axis=1)
                     p2 = tf.gather(proton_2, gather_2[i], axis=1)

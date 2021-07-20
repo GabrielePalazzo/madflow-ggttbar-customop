@@ -5,7 +5,7 @@
 #include "tensorflow/cc/ops/math_ops.h"
 
 #include <omp.h>
-
+#include <iomanip>
 //#include <vector>
 //#include <time.h> 
 
@@ -28,7 +28,7 @@ REGISTER_OP("Matrix")
     });
 
 //int nevents = 2;
-double SQH = sqrt(0.5);
+double SQH = 0.70710676908493;//sqrt(0.5); // tf.math.sqrt(0.5) == 0.70710676908493;
 complex128 CZERO = complex128(0.0, 0.0);
 void matrix(const double*, const double*, const double*, const double*, const complex128*, const complex128*, double*, int);
 void vxxxxx(const double* p, double fmass, double nhel, double nsf, complex128*);
@@ -74,22 +74,22 @@ class MatrixOp : public OpKernel {
 
   void Compute(OpKernelContext* context) override {
     // Grab the input tensor
-    const Tensor& all_ps_tensor = context->input(0);
+    const Tensor& all_ps_tensor = context->input(0);    // Shape: [nevents, 4, 4]
     auto all_ps = all_ps_tensor.flat<double>().data();
     
-    const Tensor& hel_tensor = context->input(1);
+    const Tensor& hel_tensor = context->input(1);    // Shape: [4]
     auto hel = hel_tensor.flat<double>().data();
     
-    const Tensor& mdl_MT_tensor = context->input(2);
+    const Tensor& mdl_MT_tensor = context->input(2);    // Shape: []
     auto mdl_MT = mdl_MT_tensor.flat<double>().data();
     
-    const Tensor& mdl_WT_tensor = context->input(3);
+    const Tensor& mdl_WT_tensor = context->input(3);    // Shape: []
     auto mdl_WT = mdl_WT_tensor.flat<double>().data();
     
-    const Tensor& GC_10_tensor = context->input(4);
+    const Tensor& GC_10_tensor = context->input(4);    // Shape: [nevents]
     auto GC_10 = GC_10_tensor.flat<complex128>().data();
     
-    const Tensor& GC_11_tensor = context->input(5);
+    const Tensor& GC_11_tensor = context->input(5);    // Shape: [nevents]
     auto GC_11 = GC_11_tensor.flat<complex128>().data();
 
     int nevents = all_ps_tensor.shape().dim_size(0);
@@ -132,24 +132,24 @@ void matrix(const double* all_ps, const double* hel, const double* mdl_MT, const
         vxxxxx(all_ps+(16*i+4), ZERO, hel[1], -1, w1);
         oxxxxx(all_ps+(16*i+8), mdl_MT[0], hel[2], +1, w2);
         ixxxxx(all_ps+(16*i+12), mdl_MT[0], hel[3], -1, w3);
-        VVV1P0_1(w0, w1, GC_10[0], ZERO, ZERO, w4);
+        VVV1P0_1(w0, w1, GC_10[i], ZERO, ZERO, w4);
         
         // Amplitude(s) for diagram number 1
         
         complex128 amp0;
-        FFV1_0(w3, w2, w4, GC_11[0], amp0);
-        FFV1_1(w2, w0, GC_11[0], mdl_MT[0], mdl_WT[0], w4);
+        FFV1_0(w3, w2, w4, GC_11[i], amp0);
+        FFV1_1(w2, w0, GC_11[i], mdl_MT[0], mdl_WT[0], w4);
         
         // Amplitude(s) for diagram number 2
         
         complex128 amp1;
-        FFV1_0(w3, w4, w1, GC_11[0], amp1);
-        FFV1_2(w3, w0, GC_11[0], mdl_MT[0], mdl_WT[0], w4);
+        FFV1_0(w3, w4, w1, GC_11[i], amp1);
+        FFV1_2(w3, w0, GC_11[i], mdl_MT[0], mdl_WT[0], w4);
         
         // Amplitude(s) for diagram number 3
         
         complex128 amp2;
-        FFV1_0(w4, w2, w1, GC_11[0], amp2);
+        FFV1_0(w4, w2, w1, GC_11[i], amp2);
         
         complex128 jamp[2] = {complex128(0, 1) * amp0 - amp1, -complex128(0, 1) * amp0 - amp2};
         
@@ -157,7 +157,7 @@ void matrix(const double* all_ps, const double* hel, const double* mdl_MT, const
         for (int a = 0; a < 2; a++) {
             for (int b = 0; b < 2; b++) {
                 // ret = tf.einsum("ae, ab, be -> e", jamp, cf, tf.math.conj(jamp)/tf.reshape(denom, (ncolor, 1)))
-                ret += (jamp[a] * cf[a * 2 + b]) * (std::conj(jamp[b]) / denom[0]);
+                ret += (jamp[a] * cf[a * 2 + b] * std::conj(jamp[b])) / denom[0];
             }
         }
         output_flat[i] = ret.real();
@@ -376,7 +376,7 @@ void _vx_no_BRST_check_massive_pp_zero(double nhel, double nsvahl, complex128* v
 void _vx_no_BRST_check_massive_pp_nonzero(const double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt, complex128* v) {
     double emp = p[0] / (vmass * pp);
     complex128 v2 = complex128(hel0 * pp / vmass, 0.0);
-    complex128 v5 = complex128(hel0 * p[3] * emp + nhel * pt / pp * SQH, 0.0);
+    complex128 v5 = complex128(hel0 * p[3] * emp + (nhel * pt) / (pp * SQH), 0.0);
     
     complex128 v34[2];
     if (pt != 0) {
@@ -621,10 +621,11 @@ REGISTER_OP("Vxxxxx")
     .Input("zero: double")
     .Input("hel: double")
     .Input("m1: double")
+    .Input("num: int32")
     .Input("correct_shape: complex128")
     .Output("vx: complex128")
     .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
-      c->set_output(0, c->input(4));
+      c->set_output(0, c->input(5));
       return Status::OK();
     });
 
@@ -647,7 +648,10 @@ class VxxxxxOp : public OpKernel {
     const Tensor& m1_tensor = context->input(3);
     auto m1 = m1_tensor.flat<double>().data();
     
-    const Tensor& correct_shape = context->input(4);
+    const Tensor& num_tensor = context->input(4);
+    auto num = num_tensor.flat<int>().data();
+    
+    const Tensor& correct_shape = context->input(5);
 
     // Create an output tensor
     Tensor* output_tensor = NULL;
@@ -659,11 +663,11 @@ class VxxxxxOp : public OpKernel {
     
     int nevents = all_ps_tensor.shape().dim_size(0);
     int output_slice_size = 6;
-    std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
+    complex128 jamp[output_slice_size * nevents];
     
     for (int i = 0; i < nevents; i++) {
         complex128 w0[6];
-        vxxxxx(all_ps+(16*i), *zero, *hel, *m1, w0);
+        vxxxxx(all_ps+(16*i + 4*num[0]), *zero, *hel, *m1, w0);
         
         for (int j = 0; j < output_slice_size; j++) {
             jamp[j * nevents + i] = w0[j];
@@ -721,7 +725,7 @@ class OxxxxxOp : public OpKernel {
     
     int nevents = all_ps_tensor.shape().dim_size(0);
     int output_slice_size = 6;
-    std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
+    complex128 jamp[output_slice_size * nevents];
     
     for (int i = 0; i < nevents; i++) {
         complex128 w0[6];
@@ -783,7 +787,7 @@ class IxxxxxOp : public OpKernel {
     
     int nevents = all_ps_tensor.shape().dim_size(0);
     int output_slice_size = 6;
-    std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
+    complex128 jamp[output_slice_size * nevents];
     
     for (int i = 0; i < nevents; i++) {
         complex128 w0[6];
@@ -861,7 +865,7 @@ class VxnobrstcheckOp : public OpKernel {
     
     int nevents = all_ps_tensor.shape().dim_size(0);
     int output_slice_size = 4;
-    std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
+    complex128 jamp[output_slice_size * nevents];
     
     for (int i = 0; i < nevents; i++) {
         complex128 w0[6];
@@ -938,7 +942,7 @@ class Vvv1p01Op : public OpKernel {
     
     int nevents = all_ps_tensor.shape().dim_size(0);
     int output_slice_size = 6;
-    std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
+    complex128 jamp[output_slice_size * nevents];
     
     for (int i = 0; i < nevents; i++) {
         complex128 V2[output_slice_size];
@@ -949,8 +953,7 @@ class Vvv1p01Op : public OpKernel {
             V3[j] = V3_v[j * nevents + i];
         }
         complex128 w4[6];
-        VVV1P0_1(V2, V3, *COUP, *M1, *W1, w4);
-        //auto w4 = VVV1P0_1(V2, V3, *COUP, *M1, *W1);
+        VVV1P0_1(V2, V3, COUP[i], *M1, *W1, w4);
         
         for (int j = 0; j < output_slice_size; j++) {
             jamp[j * nevents + i] = w4[j];
@@ -1040,7 +1043,7 @@ class Ffv10Op : public OpKernel {
             w4[j] = w4_v[j * nevents + i];
         }
         complex128 amp0;
-        FFV1_0(w3, w2, w4, *COUP1, amp0);
+        FFV1_0(w3, w2, w4, COUP1[i], amp0);
         
         for (int j = 0; j < output_slice_size; j++) {
             jamp[j * nevents + i] = amp0;
@@ -1128,7 +1131,7 @@ class Ffv11Op : public OpKernel {
             w0[j] = w0_v[j * nevents + i];
         }
         complex128 w4[6];
-        FFV1_1(w2, w0, *COUP1, *mdl_MT, *mdl_WT, w4);
+        FFV1_1(w2, w0, COUP1[i], *mdl_MT, *mdl_WT, w4);
         //auto w4 = FFV1_1(w2, w0, *COUP1, *mdl_MT, *mdl_WT);
         
         for (int j = 0; j < output_slice_size; j++) {
@@ -1217,7 +1220,7 @@ class Ffv12Op : public OpKernel {
             w0[j] = w0_v[j * nevents + i];
         }
         complex128 w4[6];
-        FFV1_2(w3, w0, *COUP1, *mdl_MT, *mdl_WT, w4);
+        FFV1_2(w3, w0, COUP1[i], *mdl_MT, *mdl_WT, w4);
         //auto w4 = FFV1_2(w3, w0, *COUP1, *mdl_MT, *mdl_WT);
         
         for (int j = 0; j < output_slice_size; j++) {
@@ -1273,7 +1276,7 @@ class StackOp : public OpKernel {
     
     int nevents = amp0_tensor.shape().dim_size(0);
     int output_slice_size = 2;
-    std::vector<complex128> jamp(output_slice_size * nevents, complex128(0,0));
+    complex128 jamp[output_slice_size * nevents];
     
     for (int i = 0; i < nevents; i++) {
         jamp[i + 0 * nevents] =  complex128(0, 1) * amp0[i] - amp1[i];

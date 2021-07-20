@@ -104,8 +104,9 @@ def get_model_param(model, param_card_path):
     return Model(constants, functions)
 
 def areclose(t1, t2):
-    dist = tf.fill(tf.shape(t1), float_me(0.0000001))
+    dist = tf.fill(tf.shape(t1), float_me(0.0001))
     #dist = tf.fill(tf.shape(t1), float_me(0.002))
+    #dist = tf.fill(tf.shape(t1), float_me(0.0))
     
     # Check if the real parts are close
     
@@ -120,10 +121,10 @@ def areclose(t1, t2):
     tf.debugging.assert_equal(result, True)
     print("...ok")
 
-def vxxxxxtest(all_ps, ZERO, hel, fl, MatrixOp):
+def vxxxxxtest(all_ps, ZERO, hel, fl, num, MatrixOp):
     print("Testing vxxxxx...")
-    pw0 = vxxxxx(all_ps[:,0], ZERO, hel[0], fl)
-    cw0 = MatrixOp.vxxxxx(all_ps, ZERO, hel[0], fl, pw0)
+    pw0 = vxxxxx(all_ps[:,num], ZERO, hel[num], fl)
+    cw0 = MatrixOp.vxxxxx(all_ps, ZERO, hel[num], fl, num, pw0)
     #print(pw0, cw0)
     areclose(pw0, cw0)
     
@@ -156,6 +157,11 @@ def vxnobrstchecktest(all_ps, hel, MatrixOp):
 
     pw0 = _vx_no_BRST_check(p, ZERO, nhel, nsv, hel0, nsvahl, pp, pt)
     cw0 = MatrixOp.vxnobrstcheck(all_ps, ZERO, nhel, nsv, hel0, nsvahl, pp, pt, pw0)
+    
+    #print(pw0, cw0)
+    np.set_printoptions(precision=15)
+    #print(pw0.numpy())
+    #print(cw0.numpy())
     areclose(pw0, cw0)
 
 def vvv1p0_1test(all_ps, hel, mdl_MT, GC_10, MatrixOp):
@@ -197,8 +203,8 @@ def ffv1_1test(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp):
     w4 = VVV1P0_1(w0, w1, GC_10, ZERO, ZERO)
     amp0 = FFV1_0(w3,w2,w4,GC_11)
     
-    cw0 = MatrixOp.vxxxxx(all_ps,ZERO,hel[0],float_me(-1), w0)
-    cw1 = MatrixOp.vxxxxx(all_ps,ZERO,hel[1],float_me(-1), w1)
+    cw0 = MatrixOp.vxxxxx(all_ps,ZERO,hel[0],float_me(-1), 0, w0)
+    cw1 = MatrixOp.vxxxxx(all_ps,ZERO,hel[1],float_me(-1), 1, w1)
     cw2 = MatrixOp.oxxxxx(all_ps,mdl_MT,hel[2],float_me(+1), w2)
     cw3 = MatrixOp.ixxxxx(all_ps,mdl_MT,hel[3],float_me(-1), w3)
     cw4 = MatrixOp.vvv1p01(all_ps, hel, cw0, cw1, GC_10, ZERO, ZERO, mdl_MT, w4)
@@ -227,8 +233,8 @@ def ffv1_2test(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp):
     amp1 = FFV1_0(w3,w4,w1,GC_11)
     w4 = FFV1_2(w3,w0,GC_11,mdl_MT,mdl_WT)
     
-    cw0 = MatrixOp.vxxxxx(all_ps,ZERO,hel[0],float_me(-1), w0)
-    cw1 = MatrixOp.vxxxxx(all_ps,ZERO,hel[1],float_me(-1), w1)
+    cw0 = MatrixOp.vxxxxx(all_ps,ZERO,hel[0],float_me(-1), 0, w0)
+    cw1 = MatrixOp.vxxxxx(all_ps,ZERO,hel[1],float_me(-1), 1, w1)
     cw2 = MatrixOp.oxxxxx(all_ps,mdl_MT,hel[2],float_me(+1), w2)
     cw3 = MatrixOp.ixxxxx(all_ps,mdl_MT,hel[3],float_me(-1), w3)
     cw4 = MatrixOp.vvv1p01(all_ps, hel, cw0, cw1, GC_10, ZERO, ZERO, mdl_MT, w4)
@@ -260,8 +266,8 @@ def jamptest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp):
     amp2= FFV1_0(w4,w2,w1,GC_11)
     jamp = tf.stack([complex_tf(0,1)*amp0-amp1,-complex(0,1)*amp0-amp2], axis=0)
     
-    cw0 = MatrixOp.vxxxxx(all_ps,ZERO,hel[0],float_me(-1), w0)
-    cw1 = MatrixOp.vxxxxx(all_ps,ZERO,hel[1],float_me(-1), w1)
+    cw0 = MatrixOp.vxxxxx(all_ps,ZERO,hel[0],float_me(-1), 0, w0)
+    cw1 = MatrixOp.vxxxxx(all_ps,ZERO,hel[1],float_me(-1), 1, w1)
     cw2 = MatrixOp.oxxxxx(all_ps,mdl_MT,hel[2],float_me(+1), w2)
     cw3 = MatrixOp.ixxxxx(all_ps,mdl_MT,hel[3],float_me(-1), w3)
     cw4 = MatrixOp.vvv1p01(all_ps, hel, cw0, cw1, GC_10, ZERO, ZERO, mdl_MT, w4)
@@ -301,7 +307,10 @@ def matrixtest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp):
     #end = time.time()
     #print(f"time (python) (s): {end-start}")
     
+    #start = time.time()
     cres = MatrixOp.matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11)
+    #end = time.time()
+    #print(f"time (python) (s): {end-start}")
     """
     cw0 = MatrixOp.vxxxxx(all_ps,ZERO,hel[0],float_me(-1), w0)
     cw1 = MatrixOp.vxxxxx(all_ps,ZERO,hel[1],float_me(-1), w1)
@@ -317,6 +326,56 @@ def matrixtest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp):
     cret = tf.einsum("ie, ij, je -> e", cjamp, cf, tf.math.conj(cjamp)/tf.reshape(denom, (ncolor, 1)))
     cres = tf.math.real(cret)
     """
+    
+    #print(res, cres)
+    areclose(res, cres)
+
+def matrix(all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11):
+    ngraphs = 3
+    nwavefuncs = 5
+    ncolor = 2
+    ZERO = float_me(0.)
+    
+    denom = tf.constant([3,3], dtype=DTYPECOMPLEX)
+    cf = tf.constant([[16,-2],
+                      [-2,16]], dtype=DTYPECOMPLEX)
+    
+    w0 = vxxxxx(all_ps[:,0],ZERO,hel[0],float_me(-1))
+    w1 = vxxxxx(all_ps[:,1],ZERO,hel[1],float_me(-1))
+    w2 = oxxxxx(all_ps[:,2],mdl_MT,hel[2],float_me(+1))
+    w3 = ixxxxx(all_ps[:,3],mdl_MT,hel[3],float_me(-1))
+    w4= VVV1P0_1(w0,w1,GC_10,ZERO,ZERO)
+    # Amplitude(s) for diagram number 1
+    amp0= FFV1_0(w3,w2,w4,GC_11)
+    w4= FFV1_1(w2,w0,GC_11,mdl_MT,mdl_WT)
+    # Amplitude(s) for diagram number 2
+    amp1= FFV1_0(w3,w4,w1,GC_11)
+    w4= FFV1_2(w3,w0,GC_11,mdl_MT,mdl_WT)
+    # Amplitude(s) for diagram number 3
+    amp2= FFV1_0(w4,w2,w1,GC_11)
+
+    jamp = tf.stack([complex_tf(0,1)*amp0-amp1, -complex(0,1)*amp0-amp2], axis=0)
+
+    ret = tf.einsum("ie, ij, je -> e", jamp, cf, tf.math.conj(jamp)/tf.reshape(denom, (ncolor, 1)))
+    
+    return tf.math.real(ret)
+
+def smatrixtest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp):
+    print("Testing smatrix...")
+    
+    denominator = float_me(256)
+    
+    nevts = tf.shape(all_ps, out_type=DTYPEINT)[0]
+    matrixOp = tf.load_op_library('./matrix.so')
+    ans = tf.zeros(nevts, dtype=DTYPE)
+    ans2 = tf.zeros(nevts, dtype=DTYPE)
+        
+    for hel in helicities:
+        ans += matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11)
+        ans2 += matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11)
+        
+    res = ans/denominator
+    cres = ans2/denominator
     
     #print(res, cres)
     areclose(res, cres)
@@ -371,7 +430,7 @@ if __name__ == "__main__":
 
     all_ps = tf.concat([inc_p1, inc_p2, outgoing_4m], axis=par_ax)
     """
-    hel = float_me([-1,-1,-1,1])
+    #hel = float_me([-1,-1,-1,1])
     ZERO = float_me(0.)
     
     # Test functions
@@ -379,7 +438,7 @@ if __name__ == "__main__":
     MatrixOp = tf.load_op_library('./matrix.so')
     
     
-    """
+    
     helicities = float_me([ \
         [-1,-1,-1,1],
         [-1,-1,-1,-1],
@@ -397,7 +456,7 @@ if __name__ == "__main__":
         [1,1,-1,-1],
         [1,1,1,1],
         [1,1,1,-1]])
-    """
+    
     #for hel in helicities:
         #print(hel, hel[0])
     
@@ -406,23 +465,40 @@ if __name__ == "__main__":
     
     mdl_MT = float_me(173.0)
     mdl_WT = float_me(1.4915000200271606)
-    GC_10  = tf.constant([-1.21771579-0.j])
-    GC_11  = tf.constant([0.+1.21771579j])
     #"""
     all_ps = tf.constant([
-       [[6072.61964028,    0.,            0.,         6072.61964028],
-        [6072.61964028,    0.,            0.,        -6072.61964028],
-        [6072.61964028,-2777.31637198, 1722.92077616, 5118.08236202],
-        [6072.61964028, 2777.31637198,-1722.92077616,-5118.08236202]],
-       [[3068.10329143,    0.,            0.,         3068.10329143],
-        [3068.10329143,    0.,            0.,        -3068.10329143],
-        [3068.10329143,-1224.19479866, 2778.9848378,  -438.00476374],
-        [3068.10329143, 1224.19479866,-2778.9848378,   438.00476374]]], dtype=tf.float64)
+       [[ 6072.61964028,    0.,            0.,         6072.61964028],
+        [ 6072.61964028,    0.,            0.,        -6072.61964028],
+        [ 6072.61964028,-2777.31637198, 1722.92077616, 5118.08236202],
+        [ 6072.61964028, 2777.31637198,-1722.92077616,-5118.08236202]],
+       [[ 3068.10329143,    0.,            0.,         3068.10329143],
+        [ 3068.10329143,    0.,            0.,        -3068.10329143],
+        [ 3068.10329143,-1224.19479866, 2778.9848378,  -438.00476374],
+        [ 3068.10329143, 1224.19479866,-2778.9848378,   438.00476374]],
+       [[  207.05393783212523,0.,          0.,          207.05393783212523],
+        [  196.25596330440683,0.,          0.,         -196.25596330440683],
+        [  204.2077863772509,26.549849378381349,-30.275756768746309,100.74871744673455],
+        [  199.10211475928111,-26.549849378381314,30.275756768746284,-89.950742919016179]],
+       [[  483.818431423889,0.,            0.,          483.818431423889],
+        [ 1958.0249399692245,0.,           0.,         -1958.0249399692245],
+        [ 1676.7361874941203,-121.69728292164577,735.07104367991008,-1492.1044114019417],
+        [  765.10718389899318,121.69728292164575,-735.07104367991008,17.897902856606152]],
+       [[ 8429.3766316 ,    0.,            0.,         8429.3766316],
+        [ 8429.3766316 ,    0.,            0.,        -8429.3766316],
+        [ 8429.3766316 ,-5648.23696759, 5725.21450186,-2524.62442017],
+        [ 8429.3766316 , 5648.23696759,-5725.21450186, 2524.62442017]],
+       [[ 9204.28055424,    0.,            0.,         9204.28055424],
+        [ 9204.28055424,    0.,            0.,        -9204.28055424],
+        [ 9204.28055424,-6050.88909762,-4094.10402439,-5598.55641098],
+        [ 9204.28055424, 6050.88909762, 4094.10402439, 5598.55641098]]], dtype=tf.float64)
     #"""
     #print(all_ps)
     
-    #print(mdl_MT, mdl_WT, GC_10, GC_11)
+    GC_10  = tf.ones_like(all_ps[:,0,0], dtype=DTYPECOMPLEX) * tf.constant([-1.21771579-0.j])
+    GC_11  = tf.ones_like(all_ps[:,0,0], dtype=DTYPECOMPLEX) * tf.constant([0.+1.21771579j])
     
+    #print(mdl_MT, mdl_WT, GC_10, GC_11)
+    """
     #vxnobrstchecktest(all_ps, hel, MatrixOp)
     vxxxxxtest(all_ps, ZERO, hel, float_me(-1), MatrixOp)
     oxxxxxtest(all_ps, mdl_MT, hel, float_me(+1), MatrixOp)
@@ -435,5 +511,22 @@ if __name__ == "__main__":
     matrixtest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp)
     #print(all_ps[:,0], all_ps[:,1])
     """
+    """
     model_params.freeze_alpha_s(0.118)
     """
+    #print(float_me(tfmath.sqrt(0.5)), np.sqrt(0.5))
+    for hel in helicities:
+        #print(hel)
+        vxnobrstchecktest(all_ps, hel, MatrixOp)
+        vxxxxxtest(all_ps, ZERO, hel, float_me(-1), 0, MatrixOp)
+        vxxxxxtest(all_ps, ZERO, hel, float_me(-1), 1, MatrixOp)
+        oxxxxxtest(all_ps, mdl_MT, hel, float_me(+1), MatrixOp)
+        ixxxxxtest(all_ps, mdl_MT, hel, float_me(-1), MatrixOp)
+        vvv1p0_1test(all_ps, hel, mdl_MT, GC_10, MatrixOp)
+        ffv1_0test(all_ps, hel, mdl_MT, GC_10, GC_11, MatrixOp)
+        ffv1_1test(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp)
+        ffv1_2test(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp)
+        jamptest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp)
+        matrixtest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp)
+    smatrixtest(all_ps, helicities, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp)
+    
