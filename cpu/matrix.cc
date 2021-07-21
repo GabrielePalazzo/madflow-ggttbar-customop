@@ -28,7 +28,7 @@ REGISTER_OP("Matrix")
     });
 
 //int nevents = 2;
-double SQH = 0.70710676908493;//sqrt(0.5); // tf.math.sqrt(0.5) == 0.70710676908493;
+double SQH = sqrt(0.5); // tf.math.sqrt(0.5) == 0.70710676908493;
 complex128 CZERO = complex128(0.0, 0.0);
 void matrix(const double*, const double*, const double*, const double*, const complex128*, const complex128*, double*, int);
 void vxxxxx(const double* p, double fmass, double nhel, double nsf, complex128*);
