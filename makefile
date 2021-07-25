@@ -15,11 +15,11 @@ CUDASRC = $(wildcard gpu/*.cu.cc)
 SOURCES = $(filter-out $(CUDASRC), $(GSRCS))
 
 TARGET_LIB=matrix.so
-TARGET_LIB_CUDA=kernel_example.so
+TARGET_LIB_CUDA=matrix_cu.so
 
 TARGETS=$(TARGET_LIB)
 
-#TARGETS+=$(TARGET_LIB_CUDA)
+TARGETS+=$(TARGET_LIB_CUDA)
 
 #OBJECT_SRCS = $(SOURCES:.cc=.o)
 #OBJECT_SRCS_CUDA = $(SRCS:.cc=.cudao)
@@ -27,9 +27,9 @@ TARGETS=$(TARGET_LIB)
 OBJECT_SRCS = $(CSRCS:.cc=.o)
 OBJECT_SRCS_CUDA = $(GSRCS:.cc=.cudao)
 
-CFLAGS = ${TF_CFLAGS} ${OMP_CFLAGS} -fPIC -O2 -std=c++11
+CFLAGS = ${TF_CFLAGS} ${OMP_CFLAGS} -fPIC -O2 -std=c++14
 CFLAGS_CUDA = $(CFLAGS) -D GOOGLE_CUDA=1 -I$(CUDA_PATH)/include
-CFLAGS_NVCC = ${TF_CFLAGS} -O2 -std=c++11 -D GOOGLE_CUDA=1 -x cu -Xcompiler -fPIC -DNDEBUG --expt-relaxed-constexpr
+CFLAGS_NVCC = ${TF_CFLAGS} -O2 -std=c++14 -D GOOGLE_CUDA=1 -x cu -Xcompiler -fPIC -DNDEBUG --expt-relaxed-constexpr
 
 LDFLAGS = -shared ${TF_LFLAGS}
 LDFLAGS_CUDA = $(LDFLAGS) -L$(CUDA_PATH)/lib64 -lcudart
@@ -62,8 +62,9 @@ $(TARGET_LIB_CUDA): $(OBJECT_SRCS_CUDA)
 #	$(NVCC) -std=c++11 -c kernel_example.cu.cc $(CUDA_LFLAGS) -o kernel_example.cu.o
 #	$(CXX) -std=c++11 -I $(PATH_TO_INCLUDE) -shared kernel_example.cc kernel_example.cu.o kernel_example.h $(CUDA_LIB) -lcudart -o kernel_example.so -fPIC $(TF_CFLAGS) $(TF_LFLAGS) -O2
 
-test: all test.py
+test: all test.py test_cuda.py
 	python3 test.py
+	python3 test_cuda.py
 
 clean:
 	rm -f $(TARGETS) $(OBJECT_SRCS) $(OBJECT_SRCS_CUDA)

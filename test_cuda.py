@@ -542,5 +542,24 @@ if __name__ == "__main__":
         test_custom_op(all_ps, helicities, mdl_MT, mdl_WT, GC_10, GC_11, Op, op)
     """
     #MatrixOp = tf.load_op_library('./matrix.so')
-    test_custom_op(all_ps, helicities, mdl_MT, mdl_WT, GC_10, GC_11, './matrix.so')
+    #test_custom_op(all_ps, helicities, mdl_MT, mdl_WT, GC_10, GC_11, './matrix.so')
+    #test_custom_op(all_ps, helicities, mdl_MT, mdl_WT, GC_10, GC_11, MatrixcuOp)
+    
+    MatrixcuOp = tf.load_op_library('./matrix_cu.so')
+    for hel in helicities:
+        #print(hel)
+        """
+        vxnobrstchecktest(all_ps, hel, MatrixOp)
+        vxxxxxtest(all_ps, ZERO, hel, float_me(-1), 0, MatrixOp)
+        vxxxxxtest(all_ps, ZERO, hel, float_me(-1), 1, MatrixOp)
+        oxxxxxtest(all_ps, mdl_MT, hel, float_me(+1), MatrixOp)
+        ixxxxxtest(all_ps, mdl_MT, hel, float_me(-1), MatrixOp)
+        vvv1p0_1test(all_ps, hel, mdl_MT, GC_10, MatrixOp)
+        ffv1_0test(all_ps, hel, mdl_MT, GC_10, GC_11, MatrixOp)
+        ffv1_1test(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp)
+        ffv1_2test(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp)
+        jamptest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixOp)
+        """
+        matrixtest(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, MatrixcuOp)
+    smatrixtest(all_ps, helicities, mdl_MT, mdl_WT, GC_10, GC_11, MatrixcuOp)
     

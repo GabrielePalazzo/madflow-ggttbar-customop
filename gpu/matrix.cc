@@ -6,11 +6,14 @@
 
 #include <omp.h>
 #include <iomanip>
-//#include <vector>
-//#include <time.h> 
+
+#include "matrix.h"
 
 using namespace tensorflow;
 
+
+using CPUDevice = Eigen::ThreadPoolDevice;
+using GPUDevice = Eigen::GpuDevice;
 
 // mdl_MT,mdl_WT,GC_10,GC_11
 
@@ -66,8 +69,15 @@ void FFV1_2(complex128* F1, complex128* V3, const complex128 COUP, double M1, do
 double sign(double x, double y);
 double signvec(double x, double y);
 
-
+template <>
+struct MatrixFunctor<CPUDevice> {
+  void operator()(const CPUDevice& d, const double* all_ps, const double* hel, const double* mdl_MT, const double* mdl_WT, const complex128* GC_10, const complex128* GC_11, 
+            double* output_flat, const int nevents) {
+      matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, output_flat, nevents);
+  }
+};
     
+template <typename Device>
 class MatrixOp : public OpKernel {
  public:
   explicit MatrixOp(OpKernelConstruction* context) : OpKernel(context) {}
@@ -100,9 +110,23 @@ class MatrixOp : public OpKernel {
                                                      &output_tensor));
     auto output_flat = output_tensor->flat<double>();
     
-    matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, output_flat.data(), nevents);
+    
+    MatrixFunctor<Device>()(
+        context->eigen_device<Device>(), all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, output_flat.data(), nevents);
+    //matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, output_flat.data(), nevents);
   }
 };
+
+// Register the CPU kernels.
+REGISTER_KERNEL_BUILDER(Name("Matrix").Device(DEVICE_CPU), MatrixOp<CPUDevice>);
+
+// Register the GPU kernels.
+#ifdef GOOGLE_CUDA
+/* Declare explicit instantiations in kernel_example.cu.cc. */
+extern template class MatrixFunctor<GPUDevice>;
+REGISTER_KERNEL_BUILDER(Name("Matrix").Device(DEVICE_GPU), MatrixOp<GPUDevice>);
+#endif  // GOOGLE_CUDA
+
 
 void matrix(const double* all_ps, const double* hel, const double* mdl_MT, const double* mdl_WT, const complex128* GC_10, const complex128* GC_11, 
             double* output_flat, const int nevents) {
@@ -609,8 +633,6 @@ void FFV1_2(complex128* F1, complex128* V3, const complex128 COUP_comp, double M
     F2[4]= denom*(-cI)*(F1[4]*(P2[0]*(-V3[2]+V3[5])+(P2[1]*(V3[3]+cI*(V3[4]))+(P2[2]*(-cI*(V3[3])+V3[4])+P2[3]*(-V3[2]+V3[5]))))+(F1[5]*(P2[0]*(V3[3]-cI*(V3[4]))+(P2[1]*(-1./1.)*(V3[2]+V3[5])+(P2[2]*(cI*(V3[2]+V3[5]))+P2[3]*(V3[3]-cI*(V3[4])))))+M2*(F1[2]*(-1./1.)*(V3[2]+V3[5])+F1[3]*(-V3[3]+cI*(V3[4])))));
     F2[5]= denom*cI*(F1[4]*(P2[0]*(-1./1.)*(V3[3]+cI*(V3[4]))+(P2[1]*(V3[2]-V3[5])+(P2[2]*(cI*(V3[2])-cI*(V3[5]))+P2[3]*(V3[3]+cI*(V3[4])))))+(F1[5]*(P2[0]*(V3[2]+V3[5])+(P2[1]*(-V3[3]+cI*(V3[4]))+(P2[2]*(-1./1.)*(cI*(V3[3])+V3[4])-P2[3]*(V3[2]+V3[5]))))+M2*(F1[2]*(V3[3]+cI*(V3[4]))+F1[3]*(V3[2]-V3[5]))));
 }
-
-REGISTER_KERNEL_BUILDER(Name("Matrix").Device(DEVICE_CPU), MatrixOp);
 
 
 REGISTER_OP("Vxxxxx")
@@ -1291,5 +1313,4 @@ REGISTER_KERNEL_BUILDER(Name("Stacktest").Device(DEVICE_CPU), StackOp);
 /*
 End
 */
-
 

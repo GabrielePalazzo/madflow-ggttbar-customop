@@ -241,6 +241,40 @@ class Matrix_1_gg_ttx(object):
             #tf.print("Custom Operator memory usage:", process.memory_info().rss)
         
         return (ans2/self.denominator)
+        
+    @tf.function(input_signature=smatrix_signature)
+    def cusmatrix(self,all_ps,mdl_MT,mdl_WT,GC_10,GC_11):
+        #  
+        #  MadGraph5_aMC@NLO v. 3.1.1, 2021-05-28
+        #  By the MadGraph5_aMC@NLO Development Team
+        #  Visit launchpad.net/madgraph5 and amcatnlo.web.cern.ch
+        # 
+        # MadGraph5_aMC@NLO StandAlone Version
+        # 
+        # Returns amplitude squared summed/avg over colors
+        # and helicities
+        # for the point in phase space P(0:3,NEXTERNAL)
+        #  
+        # Process: g g > t t~ WEIGHTED<=2 @1
+        #  
+        # Clean additional output
+        #
+        ###self.clean()
+        # ----------
+        # BEGIN CODE
+        # ----------
+        nevts = tf.shape(all_ps, out_type=DTYPEINT)[0]
+        matrixOp = tf.load_op_library('./matrix_cu.so')
+        ans2 = tf.zeros(nevts, dtype=DTYPE)
+        
+        for hel in self.helicities:
+            #start = time.time()
+            ans2 += matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11)
+            #end = time.time()
+            #tf.print(f"(Custom Operator: took {end-start:.5f} s)")
+            #tf.print("Custom Operator memory usage:", process.memory_info().rss)
+        
+        return (ans2/self.denominator)
 
     @tf.function(input_signature=matrix_signature)
     def matrix(self,all_ps,hel,mdl_MT,mdl_WT,GC_10,GC_11):

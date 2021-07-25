@@ -5,7 +5,9 @@ labels = []
 average_time = []
 number_of_iterations = 10
 
-with open('exectime.txt', 'r') as reader:
+filename = 'exectime.txt'
+
+with open(filename, 'r') as reader:
     i = 0
     avg = 0
     for line in reader:
