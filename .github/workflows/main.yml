@@ -23,16 +23,9 @@ jobs:
              git clone https://github.com/N3PDF/madflow ~/madflow;
              cd ~/madflow;
              pip install .;
-             wget https://developer.download.nvidia.com/compute/cuda/11.4.0/local_installers/cuda-repo-ubuntu2004-11-4-local_11.4.0-470.42.01-1_amd64.deb;
-             sudo dpkg -i cuda-repo-ubuntu2004-11-4-local_11.4.0-470.42.01-1_amd64.deb;
-             sudo apt-key add /var/cuda-repo-ubuntu2004-11-4-local/7fa2af80.pub;
-             sudo apt-get update;
-             sudo apt-get -y install cuda
 
       - name: Compile
-        run: sed -e 's&third_party/gpus/cuda/include/cuda_fp16.h&cuda_fp16.h&g' home/runner/.local/lib/python3.8/site-packages/tensorflow/include/tensorflow/core/util/gpu_kernel_helper.h > test.temp;
-             mv test.temp home/runner/.local/lib/python3.8/site-packages/tensorflow/include/tensorflow/core/util/gpu_kernel_helper.h;
-             make
+        run: make
 
       - name: Run the test
         run: make test
