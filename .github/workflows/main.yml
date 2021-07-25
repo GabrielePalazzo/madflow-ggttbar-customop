@@ -30,7 +30,9 @@ jobs:
              sudo apt-get -y install cuda
 
       - name: Compile
-        run: make
+        run: sed -e 's&third_party/gpus/cuda/include/cuda_fp16.h&cuda_fp16.h&g' home/runner/.local/lib/python3.8/site-packages/tensorflow/include/tensorflow/core/util/gpu_kernel_helper.h > test.temp;
+             mv test.temp home/runner/.local/lib/python3.8/site-packages/tensorflow/include/tensorflow/core/util/gpu_kernel_helper.h;
+             make
 
       - name: Run the test
         run: make test
