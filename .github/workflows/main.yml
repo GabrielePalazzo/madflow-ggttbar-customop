@@ -23,6 +23,8 @@ jobs:
              git clone https://github.com/N3PDF/madflow ~/madflow;
              cd ~/madflow;
              pip install .;
+             wget https://developer.download.nvidia.com/compute/cuda/11.4.0/local_installers/cuda_11.4.0_470.42.01_linux.run;
+             sudo sh cuda_11.4.0_470.42.01_linux.run
 
       - name: Compile
         run: make
