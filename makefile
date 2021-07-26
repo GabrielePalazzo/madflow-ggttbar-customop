@@ -1,11 +1,11 @@
 CXX:=g++
-NVCC:=/usr/local/cuda-11.4/bin/nvcc
+NVCC:=/usr/local/cuda-11.3/bin/nvcc
 
 TF_CFLAGS=$(shell python3 -c 'import tensorflow as tf; print(" ".join(tf.sysconfig.get_compile_flags()))')
 TF_LFLAGS=$(shell python3 -c 'import tensorflow as tf; print(" ".join(tf.sysconfig.get_link_flags()))')
 #PATH_TO_INCLUDE=$(shell python3 -c 'import tensorflow as tf; print(tf.sysconfig.get_include())')
 CUDA_LFLAGS= -x cu -Xcompiler -fPIC
-CUDA_PATH=/usr/local/cuda-11.4
+CUDA_PATH=/usr/local/cuda-11.3
 
 OMP_CFLAGS = -fopenmp
 

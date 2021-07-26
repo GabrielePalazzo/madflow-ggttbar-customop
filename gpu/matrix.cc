@@ -18,12 +18,13 @@ using GPUDevice = Eigen::GpuDevice;
 // mdl_MT,mdl_WT,GC_10,GC_11
 
 REGISTER_OP("Matrix")
+    .Attr("T: numbertype")
     .Input("all_ps: double")
     .Input("hel: double")
     .Input("mdl_mt: double")
     .Input("mdl_wt: double")
-    .Input("gc_10: complex128")
-    .Input("gc_11: complex128")
+    .Input("gc_10: T")
+    .Input("gc_11: T")
     .Output("matrix_element: double")
     .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
       c->set_output(0, c->MakeShape({c->Dim(c->input(0), 0)}));
@@ -69,15 +70,15 @@ void FFV1_2(complex128* F1, complex128* V3, const complex128 COUP, double M1, do
 double sign(double x, double y);
 double signvec(double x, double y);
 
-template <>
-struct MatrixFunctor<CPUDevice> {
-  void operator()(const CPUDevice& d, const double* all_ps, const double* hel, const double* mdl_MT, const double* mdl_WT, const complex128* GC_10, const complex128* GC_11, 
+template <typename T>
+struct MatrixFunctor<CPUDevice, T> {
+  void operator()(const CPUDevice& d, const double* all_ps, const double* hel, const double* mdl_MT, const double* mdl_WT, const T* GC_10, const T* GC_11, 
             double* output_flat, const int nevents) {
       matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, output_flat, nevents);
   }
 };
     
-template <typename Device>
+template <typename Device, typename T>
 class MatrixOp : public OpKernel {
  public:
   explicit MatrixOp(OpKernelConstruction* context) : OpKernel(context) {}
@@ -97,10 +98,10 @@ class MatrixOp : public OpKernel {
     auto mdl_WT = mdl_WT_tensor.flat<double>().data();
     
     const Tensor& GC_10_tensor = context->input(4);    // Shape: [nevents]
-    auto GC_10 = GC_10_tensor.flat<complex128>().data();
+    auto GC_10 = GC_10_tensor.flat<T>().data();
     
     const Tensor& GC_11_tensor = context->input(5);    // Shape: [nevents]
-    auto GC_11 = GC_11_tensor.flat<complex128>().data();
+    auto GC_11 = GC_11_tensor.flat<T>().data();
 
     const int nevents = all_ps_tensor.shape().dim_size(0);
     
@@ -111,20 +112,38 @@ class MatrixOp : public OpKernel {
     auto output_flat = output_tensor->flat<double>();
     
     
-    MatrixFunctor<Device>()(
+    MatrixFunctor<Device, COMPLEX_TYPE>()(
         context->eigen_device<Device>(), all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, output_flat.data(), nevents);
     //matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, output_flat.data(), nevents);
   }
 };
-
+/*
 // Register the CPU kernels.
-REGISTER_KERNEL_BUILDER(Name("Matrix").Device(DEVICE_CPU), MatrixOp<CPUDevice>);
+REGISTER_KERNEL_BUILDER(Name("Matrix").Device(DEVICE_CPU).TypeConstraint<T>("T"), MatrixOp<CPUDevice>);
 
 // Register the GPU kernels.
 #ifdef GOOGLE_CUDA
-/* Declare explicit instantiations in kernel_example.cu.cc. */
 extern template class MatrixFunctor<GPUDevice>;
-REGISTER_KERNEL_BUILDER(Name("Matrix").Device(DEVICE_GPU), MatrixOp<GPUDevice>);
+REGISTER_KERNEL_BUILDER(Name("Matrix").Device(DEVICE_GPU).TypeConstraint<T>("T"), MatrixOp<GPUDevice>);
+#endif  // GOOGLE_CUDA
+*/
+
+// Register the CPU kernels.
+#define REGISTER_CPU(T)                                          \
+  REGISTER_KERNEL_BUILDER(                                       \
+      Name("Matrix").Device(DEVICE_CPU).TypeConstraint<T>("T"), \
+      MatrixOp<CPUDevice, T>);
+REGISTER_CPU(COMPLEX_TYPE);
+
+// Register the GPU kernels.
+#ifdef GOOGLE_CUDA
+#define REGISTER_GPU(T)                                          \
+  /* Declare explicit instantiations in kernel_example.cu.cc. */ \
+  extern template class MatrixFunctor<GPUDevice, T>;            \
+  REGISTER_KERNEL_BUILDER(                                       \
+      Name("Matrix").Device(DEVICE_GPU).TypeConstraint<T>("T"), \
+      MatrixOp<GPUDevice, T>);
+REGISTER_GPU(COMPLEX_TYPE);
 #endif  // GOOGLE_CUDA
 
 

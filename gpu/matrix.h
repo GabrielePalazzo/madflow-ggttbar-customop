@@ -5,19 +5,24 @@
 
 #include "tensorflow/core/framework/op.h"
 #include "tensorflow/core/framework/op_kernel.h"
+#include <cuComplex.h>
 using namespace tensorflow;
 
-template <typename Device>
+template <typename Device, typename T>
 struct MatrixFunctor {
-  void operator()(const Device& d, const double*, const double*, const double*, const double*, const complex128*, const complex128*, double*, const int);
+  void operator()(const Device& d, const double*, const double*, const double*, const double*, const T*, const T*, double*, const int);
 };
 
 #if GOOGLE_CUDA
 // Partially specialize functor for GpuDevice.
-template <>
-struct MatrixFunctor<Eigen::GpuDevice> {
-  void operator()(const Eigen::GpuDevice& d, const double*, const double*, const double*, const double*, const complex128*, const complex128*, double*, const int);
+template <typename T>
+struct MatrixFunctor<Eigen::GpuDevice, T> {
+  void operator()(const Eigen::GpuDevice& d, const double*, const double*, const double*, const double*, const T*, const T*, double*, const int);
 };
 #endif
+
+#include <thrust/complex.h>
+
+#define COMPLEX_TYPE complex128//thrust::complex<double>
 
 #endif
