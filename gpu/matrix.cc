@@ -34,38 +34,69 @@ REGISTER_OP("Matrix")
 //int nevents = 2;
 double SQH = sqrt(0.5); // tf.math.sqrt(0.5) == 0.70710676908493;
 complex128 CZERO = complex128(0.0, 0.0);
-void matrix(const double*, const double*, const double*, const double*, const complex128*, const complex128*, double*, const int);
-void vxxxxx(const double* p, double fmass, double nhel, double nsf, complex128*);
-void ixxxxx(const double* p, double fmass, double nhel, double nsf, complex128*);
-void oxxxxx(const double* p, double fmass, double nhel, double nsf, complex128*);
-void _ix_massive(const double* p, double fmass, double nsf, double nh, complex128* v);
-void _ix_massless(const double* p, double nhel, double nsf, double nh, complex128* v);
-void _ox_massless(const double* p, double nhel, double nsf, double nh, complex128* v);
-void _ox_massive(const double* p, double fmass, double nhel, double nsf, double nh, complex128* v);
-void _ix_massless_sqp0p3_zero(const double* p, double nhel, complex128& val);
-void _ix_massless_sqp0p3_nonzero(const double* p, double nh, double sqp0p3, complex128& val);
-void _ix_massive_pp_nonzero(const double* p, double fmass, double nsf, double nh, int ip, int im, double pp, complex128* v);
-void _ix_massless_nh_one(complex128* chi, complex128* v);
-void _ix_massless_nh_not_one(complex128* chi, complex128* v);
-void _ox_massive_pp_zero(double fmass, double nsf, int ip, int im, complex128* v);
-void _ox_massive_pp_nonzero(const double* p, double fmass, double nsf, double nh, double pp, complex128* v);
-void _vx_BRST_check(const double* p, double vmass, complex128* v);
-void _vx_no_BRST_check(const double *p, double vmass, double nhel, double nsv, double hel0, double nsvahl, double pp, double pt, complex128* v);
-void _vx_BRST_check_massless(const double* p, complex128* v);
-void _vx_BRST_check_massive(const double* p, double vmass, complex128* v);
-void _vx_no_BRST_check_massive(const double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt, complex128* v);
-void _vx_no_BRST_check_massive_pp_zero(double nhel, double nsvahl, complex128* v);
-void _vx_no_BRST_check_massive_pp_nonzero(const double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt, complex128* v);
-void _vx_no_BRST_check_massive_pp_nonzero_pt_nonzero(const double* p, double nhel, double hel0, double nsvahl, double pp, double pt, double emp, complex128* v);
-void _vx_no_BRST_check_massive_pp_nonzero_pt_zero(const double* p, double nhel, double nsvahl, complex128* v);
-void _vx_no_BRST_check_massless(const double* p, double nhel, double nsv, complex128* v);
-void _vx_no_BRST_check_massless_pt_nonzero(const double* p, double nhel, double nsv, double pp, double pt, complex128* v);
-void _vx_no_BRST_check_massless_pt_zero(const double* p, double nhel, double nsv, complex128* v);
+template <typename T>
+void matrix(const double*, const double*, const double*, const double*, const T*, const T*, double*, const int);
+template <typename T>
+void vxxxxx(const double* p, double fmass, double nhel, double nsf, T*);
+template <typename T>
+void ixxxxx(const double* p, double fmass, double nhel, double nsf, T*);
+template <typename T>
+void oxxxxx(const double* p, double fmass, double nhel, double nsf, T*);
+template <typename T>
+void _ix_massive(const double* p, double fmass, double nsf, double nh, T* v);
+template <typename T>
+void _ix_massless(const double* p, double nhel, double nsf, double nh, T* v);
+template <typename T>
+void _ox_massless(const double* p, double nhel, double nsf, double nh, T* v);
+template <typename T>
+void _ox_massive(const double* p, double fmass, double nhel, double nsf, double nh, T* v);
+template <typename T>
+void _ix_massless_sqp0p3_zero(const double* p, double nhel, T& val);
+template <typename T>
+void _ix_massless_sqp0p3_nonzero(const double* p, double nh, double sqp0p3, T& val);
+template <typename T>
+void _ix_massive_pp_nonzero(const double* p, double fmass, double nsf, double nh, int ip, int im, double pp, T* v);
+template <typename T>
+void _ix_massless_nh_one(T* chi, T* v);
+template <typename T>
+void _ix_massless_nh_not_one(T* chi, T* v);
+template <typename T>
+void _ox_massive_pp_zero(double fmass, double nsf, int ip, int im, T* v);
+template <typename T>
+void _ox_massive_pp_nonzero(const double* p, double fmass, double nsf, double nh, double pp, T* v);
+template <typename T>
+void _vx_BRST_check(const double* p, double vmass, T* v);
+template <typename T>
+void _vx_no_BRST_check(const double *p, double vmass, double nhel, double nsv, double hel0, double nsvahl, double pp, double pt, T* v);
+template <typename T>
+void _vx_BRST_check_massless(const double* p, T* v);
+template <typename T>
+void _vx_BRST_check_massive(const double* p, double vmass, T* v);
+template <typename T>
+void _vx_no_BRST_check_massive(const double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt, T* v);
+template <typename T>
+void _vx_no_BRST_check_massive_pp_zero(double nhel, double nsvahl, T* v);
+template <typename T>
+void _vx_no_BRST_check_massive_pp_nonzero(const double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt, T* v);
+template <typename T>
+void _vx_no_BRST_check_massive_pp_nonzero_pt_nonzero(const double* p, double nhel, double hel0, double nsvahl, double pp, double pt, double emp, T* v);
+template <typename T>
+void _vx_no_BRST_check_massive_pp_nonzero_pt_zero(const double* p, double nhel, double nsvahl, T* v);
+template <typename T>
+void _vx_no_BRST_check_massless(const double* p, double nhel, double nsv, T* v);
+template <typename T>
+void _vx_no_BRST_check_massless_pt_nonzero(const double* p, double nhel, double nsv, double pp, double pt, T* v);
+template <typename T>
+void _vx_no_BRST_check_massless_pt_zero(const double* p, double nhel, double nsv, T* v);
 
-void VVV1P0_1(complex128* V2, complex128* V3, const complex128 COUP, double M1, double W1, complex128*);
-void FFV1_0(complex128* F1, complex128* F2, complex128* V3, const complex128 COUP, complex128& amp);
-void FFV1_1(complex128* F2, complex128* V3, const complex128 COUP, double M1, double W1, complex128*);
-void FFV1_2(complex128* F1, complex128* V3, const complex128 COUP, double M1, double W1, complex128*);
+template <typename T>
+void VVV1P0_1(T* V2, T* V3, const T COUP, double M1, double W1, T*);
+template <typename T>
+void FFV1_0(T* F1, T* F2, T* V3, const T COUP, T& amp);
+template <typename T>
+void FFV1_1(T* F2, T* V3, const T COUP, double M1, double W1, T*);
+template <typename T>
+void FFV1_2(T* F1, T* V3, const T COUP, double M1, double W1, T*);
 
 double sign(double x, double y);
 double signvec(double x, double y);
@@ -147,18 +178,19 @@ REGISTER_GPU(COMPLEX_TYPE);
 #endif  // GOOGLE_CUDA
 
 
-void matrix(const double* all_ps, const double* hel, const double* mdl_MT, const double* mdl_WT, const complex128* GC_10, const complex128* GC_11, 
+template <typename T>
+void matrix(const double* all_ps, const double* hel, const double* mdl_MT, const double* mdl_WT, const T* GC_10, const T* GC_11, 
             double* output_flat, const int nevents) {
     int ngraphs = 3;
     int nwavefuncs = 5;
     int ncolor = 2;
     double ZERO = 0.;
     
-    complex128 denom[2];
+    T denom[2];
     denom[0] = 3;
     denom[1] = 3;
     
-    complex128 cf[4];
+    T cf[4];
     cf[0] = 16;
     cf[1] = -2;
     cf[2] = -2;
@@ -167,7 +199,7 @@ void matrix(const double* all_ps, const double* hel, const double* mdl_MT, const
     // Begin code
     #pragma omp parallel for
     for (int i = 0; i < nevents; i++) {
-        complex128 w0[6], w1[6], w2[6], w3[6], w4[6];
+        T w0[6], w1[6], w2[6], w3[6], w4[6];
         vxxxxx(all_ps+(16*i), ZERO, hel[0], -1, w0);
         vxxxxx(all_ps+(16*i+4), ZERO, hel[1], -1, w1);
         oxxxxx(all_ps+(16*i+8), mdl_MT[0], hel[2], +1, w2);
@@ -176,24 +208,24 @@ void matrix(const double* all_ps, const double* hel, const double* mdl_MT, const
         
         // Amplitude(s) for diagram number 1
         
-        complex128 amp0;
+        T amp0;
         FFV1_0(w3, w2, w4, GC_11[i], amp0);
         FFV1_1(w2, w0, GC_11[i], mdl_MT[0], mdl_WT[0], w4);
         
         // Amplitude(s) for diagram number 2
         
-        complex128 amp1;
+        T amp1;
         FFV1_0(w3, w4, w1, GC_11[i], amp1);
         FFV1_2(w3, w0, GC_11[i], mdl_MT[0], mdl_WT[0], w4);
         
         // Amplitude(s) for diagram number 3
         
-        complex128 amp2;
+        T amp2;
         FFV1_0(w4, w2, w1, GC_11[i], amp2);
         
-        complex128 jamp[2] = {complex128(0, 1) * amp0 - amp1, -complex128(0, 1) * amp0 - amp2};
+        T jamp[2] = {complex128(0, 1) * amp0 - amp1, -complex128(0, 1) * amp0 - amp2};
         
-        complex128 ret(0, 0);
+        T ret(0, 0);
         for (int a = 0; a < 2; a++) {
             for (int b = 0; b < 2; b++) {
                 // ret = tf.einsum("ae, ab, be -> e", jamp, cf, tf.math.conj(jamp)/tf.reshape(denom, (ncolor, 1)))
@@ -204,7 +236,8 @@ void matrix(const double* all_ps, const double* hel, const double* mdl_MT, const
     }
 }
 
-void _ix_massive(const double* p, double fmass, double nsf, double nh, complex128* v) {
+template <typename T>
+void _ix_massive(const double* p, double fmass, double nsf, double nh, T* v) {
     double pp = std::min(p[0], sqrt(p[1] * p[1] + p[2] * p[2] + p[3] * p[3]));
     
     int ip = (int)(1 + nh) / 2;
@@ -218,10 +251,11 @@ void _ix_massive(const double* p, double fmass, double nsf, double nh, complex12
     }
 }
 
-void _ix_massless(const double* p, double nhel, double nsf, double nh, complex128* v) {
+template <typename T>
+void _ix_massless(const double* p, double nhel, double nsf, double nh, T* v) {
     double sqp0p3 = sqrt(std::max(p[0] + p[3], 0.0)) * nsf;
     
-    complex128 chi1;
+    T chi1;
     if (sqp0p3 == 0) {
         _ix_massless_sqp0p3_zero(p, nhel, chi1);
     }
@@ -229,7 +263,7 @@ void _ix_massless(const double* p, double nhel, double nsf, double nh, complex12
         _ix_massless_sqp0p3_nonzero(p, nh, sqp0p3, chi1);
     }
     
-    complex128 chi[] = {complex128(sqp0p3, 0.0), chi1};
+    T chi[] = {T(sqp0p3, 0.0), chi1};
     
     if (nh == 1) {
         _ix_massless_nh_one(chi, v);
@@ -239,11 +273,12 @@ void _ix_massless(const double* p, double nhel, double nsf, double nh, complex12
     }
 }
 
-void _ox_massless(const double* p, double nhel, double nsf, double nh, complex128* v) {
+template <typename T>
+void _ox_massless(const double* p, double nhel, double nsf, double nh, T* v) {
     double sqp0p3 = sqrt(std::max(p[0] + p[3], 0.0)) * nsf;
     double mult[] = {1, 1, -1, 1};
     
-    complex128 chi0;
+    T chi0;
     if (sqp0p3 == 0) {
         _ix_massless_sqp0p3_zero(p, nhel, chi0);
     }
@@ -254,9 +289,9 @@ void _ox_massless(const double* p, double nhel, double nsf, double nh, complex12
         _ix_massless_sqp0p3_nonzero(prod, nh, sqp0p3, chi0);
     }
     
-    complex128 chi[2];
+    T chi[2];
     chi[0] = chi0;
-    chi[1] = complex128(sqp0p3, 0.0);
+    chi[1] = T(sqp0p3, 0.0);
     
     if (nh == 1) {
         _ix_massless_nh_not_one(chi, v);
@@ -266,7 +301,8 @@ void _ox_massless(const double* p, double nhel, double nsf, double nh, complex12
     }
 }
 
-void _ox_massive(const double* p, double fmass, double nhel, double nsf, double nh, complex128* v) {
+template <typename T>
+void _ox_massive(const double* p, double fmass, double nhel, double nsf, double nh, T* v) {
     double pp = std::min(p[0], sqrt(p[1] * p[1] + p[2] * p[2] + p[3] * p[3]));
     
     int ip = -((int)(1 - nh) / 2) * (int)nhel;
@@ -280,18 +316,20 @@ void _ox_massive(const double* p, double fmass, double nhel, double nsf, double 
     }
 }
 
-void _ox_massive_pp_zero(double fmass, double nsf, int ip, int im, complex128* v) {
+template <typename T>
+void _ox_massive_pp_zero(double fmass, double nsf, int ip, int im, T* v) {
     double sqm[2];
     sqm[0] = sqrt(fmass);
     sqm[1] = sign(sqm[0], fmass);
     
-    v[0] = complex128((double)im * sqm[abs(im)], 0.0);
-    v[1] = complex128((double)ip * nsf * sqm[abs(im)], 0.0);
-    v[2] = complex128((double)im * nsf * sqm[abs(ip)], 0.0);
-    v[3] = complex128((double)ip * sqm[abs(ip)], 0.0);
+    v[0] = T((double)im * sqm[abs(im)], 0.0);
+    v[1] = T((double)ip * nsf * sqm[abs(im)], 0.0);
+    v[2] = T((double)im * nsf * sqm[abs(ip)], 0.0);
+    v[3] = T((double)ip * sqm[abs(ip)], 0.0);
 }
 
-void _ox_massive_pp_nonzero(const double* p, double fmass, double nsf, double nh, double pp, complex128* v) {
+template <typename T>
+void _ox_massive_pp_nonzero(const double* p, double fmass, double nsf, double nh, double pp, T* v) {
     double sf[] = {(1 + nsf + (1 - nsf) * nh) * 0.5, (1 + nsf - (1 - nsf) * nh) * 0.5};
     double omega[] = {sqrt(p[0] + pp), fmass / (sqrt(p[0] + pp))};
     
@@ -301,68 +339,74 @@ void _ox_massive_pp_nonzero(const double* p, double fmass, double nsf, double nh
     double sfomeg[] = {sf[0] * omega[ip], sf[1] * omega[im]};
     
     double pp3 = std::max(pp + p[3], 0.0);
-    complex128 chi1;
+    T chi1;
     if (pp3 == 0) {
-        chi1 = complex128(-nh, 0);
+        chi1 = T(-nh, 0);
     }
     else {
-        chi1 = complex128(nh * p[1] / sqrt(2.0 * pp * pp3), -p[2] / sqrt(2.0 * pp * pp3));
+        chi1 = T(nh * p[1] / sqrt(2.0 * pp * pp3), -p[2] / sqrt(2.0 * pp * pp3));
     }
-    complex128 chi2(sqrt(pp3 * 0.5 / pp), 0.0);
-    complex128 chi[] = {chi2, chi1};
+    T chi2(sqrt(pp3 * 0.5 / pp), 0.0);
+    T chi[] = {chi2, chi1};
     
-    v[0] = complex128(sfomeg[1], 0.0) * chi[im];
-    v[1] = complex128(sfomeg[1], 0.0) * chi[ip];
-    v[2] = complex128(sfomeg[0], 0.0) * chi[im];
-    v[3] = complex128(sfomeg[0], 0.0) * chi[ip];
+    v[0] = T(sfomeg[1], 0.0) * chi[im];
+    v[1] = T(sfomeg[1], 0.0) * chi[ip];
+    v[2] = T(sfomeg[0], 0.0) * chi[im];
+    v[3] = T(sfomeg[0], 0.0) * chi[ip];
 }
 
-void _ix_massless_sqp0p3_zero(const double* p, double nhel, complex128& val) {
+template <typename T>
+void _ix_massless_sqp0p3_zero(const double* p, double nhel, T& val) {
     val = complex128(-nhel * sqrt(2.0 * p[0]), 0.0);
 }
 
-void _ix_massless_sqp0p3_nonzero(const double* p, double nh, double sqp0p3, complex128& val) {
+template <typename T>
+void _ix_massless_sqp0p3_nonzero(const double* p, double nh, double sqp0p3, T& val) {
     val = complex128(nh * p[1] / sqp0p3, p[2] / sqp0p3);
 }
 
-void _ix_massive_pp_nonzero(const double* p, double fmass, double nsf, double nh, int ip, int im, double pp, complex128* v) {
+template <typename T>
+void _ix_massive_pp_nonzero(const double* p, double fmass, double nsf, double nh, int ip, int im, double pp, T* v) {
     double sf[] = {(1 + nsf + (1 - nsf) * nh) * 0.5, (1 + nsf - (1 - nsf) * nh) * 0.5};
     double omega[] = {sqrt(p[0] + pp), fmass / (sqrt(p[0] + pp))};
     
     double sfomeg[] = {sf[0] * omega[ip], sf[1] * omega[im]};
     
     double pp3 = std::max(pp + p[3], 0.0);
-    complex128 chi1;
+    T chi1;
     if (pp3 == 0) {
-        chi1 = complex128(-nh, 0);
+        chi1 = T(-nh, 0);
     }
     else {
-        chi1 = complex128(nh * p[1] / sqrt(2.0 * pp * pp3), p[2] / sqrt(2.0 * pp * pp3));
+        chi1 = T(nh * p[1] / sqrt(2.0 * pp * pp3), p[2] / sqrt(2.0 * pp * pp3));
     }
-    complex128 chi2(sqrt(pp3 * 0.5 / pp), 0.0);
-    complex128 chi[] = {chi2, chi1};
+    T chi2(sqrt(pp3 * 0.5 / pp), 0.0);
+    T chi[] = {chi2, chi1};
     
-    v[0] = complex128(sfomeg[0], 0.0) * chi[im];
-    v[1] = complex128(sfomeg[0], 0.0) * chi[ip];
-    v[2] = complex128(sfomeg[1], 0.0) * chi[im];
-    v[3] = complex128(sfomeg[1], 0.0) * chi[ip];
+    v[0] = T(sfomeg[0], 0.0) * chi[im];
+    v[1] = T(sfomeg[0], 0.0) * chi[ip];
+    v[2] = T(sfomeg[1], 0.0) * chi[im];
+    v[3] = T(sfomeg[1], 0.0) * chi[ip];
 }
 
-void _ix_massless_nh_one(complex128* chi, complex128* v) {
+template <typename T>
+void _ix_massless_nh_one(T* chi, T* v) {
     v[2] = chi[0];
     v[3] = chi[1];
     v[0] = CZERO;
     v[1] = CZERO;
 }
 
-void _ix_massless_nh_not_one(complex128* chi, complex128* v) {
+template <typename T>
+void _ix_massless_nh_not_one(T* chi, T* v) {
     v[0] = chi[1];
     v[1] = chi[0];
     v[2] = CZERO;
     v[3] = CZERO;
 }
 
-void _vx_BRST_check(const double* p, double vmass, complex128* v) {
+template <typename T>
+void _vx_BRST_check(const double* p, double vmass, T* v) {
     if (vmass == 0) {
         _vx_BRST_check_massless(p, v);
     }
@@ -371,7 +415,8 @@ void _vx_BRST_check(const double* p, double vmass, complex128* v) {
     }
 }
 
-void _vx_no_BRST_check(const double* p, double vmass, double nhel, double nsv, double hel0, double nsvahl, double pp, double pt, complex128* v) {
+template <typename T>
+void _vx_no_BRST_check(const double* p, double vmass, double nhel, double nsv, double hel0, double nsvahl, double pp, double pt, T* v) {
     if (vmass != 0) {
         _vx_no_BRST_check_massive(
                             p, vmass, nhel, hel0, nsvahl, pp, pt, v
@@ -382,19 +427,22 @@ void _vx_no_BRST_check(const double* p, double vmass, double nhel, double nsv, d
     }
 }
 
-void _vx_BRST_check_massless(const double* p, complex128* v) {
+template <typename T>
+void _vx_BRST_check_massless(const double* p, T* v) {
     for (int i = 0; i < 4; i++) {
         v[i] = p[i]/p[0];
     }
 }
 
-void _vx_BRST_check_massive(const double* p, double vmass, complex128* v) {
+template <typename T>
+void _vx_BRST_check_massive(const double* p, double vmass, T* v) {
     for (int i = 0; i < 4; i++) {
         v[i] = p[i]/vmass;
     }
 }
 
-void _vx_no_BRST_check_massive(const double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt, complex128* v) {
+template <typename T>
+void _vx_no_BRST_check_massive(const double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt, T* v) {
     if (pp == 0) {
         _vx_no_BRST_check_massive_pp_zero(nhel, nsvahl, v);
     }
@@ -405,20 +453,22 @@ void _vx_no_BRST_check_massive(const double* p, double vmass, double nhel, doubl
     }
 }
 
-void _vx_no_BRST_check_massive_pp_zero(double nhel, double nsvahl, complex128* v) {
+template <typename T>
+void _vx_no_BRST_check_massive_pp_zero(double nhel, double nsvahl, T* v) {
     double hel0 = 1.0 - abs(nhel);
-    v[0] = complex128(1, 0);
-    v[1] = complex128(-nhel * SQH, 0.0);
-    v[2] = complex128(0.0, nsvahl * SQH);
-    v[3] = complex128(hel0, 0.0);
+    v[0] = T(1, 0);
+    v[1] = T(-nhel * SQH, 0.0);
+    v[2] = T(0.0, nsvahl * SQH);
+    v[3] = T(hel0, 0.0);
 }
 
-void _vx_no_BRST_check_massive_pp_nonzero(const double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt, complex128* v) {
+template <typename T>
+void _vx_no_BRST_check_massive_pp_nonzero(const double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt, T* v) {
     double emp = p[0] / (vmass * pp);
-    complex128 v2 = complex128(hel0 * pp / vmass, 0.0);
-    complex128 v5 = complex128(hel0 * p[3] * emp + (nhel * pt) / (pp * SQH), 0.0);
+    T v2 = T(hel0 * pp / vmass, 0.0);
+    T v5 = T(hel0 * p[3] * emp + (nhel * pt) / (pp * SQH), 0.0);
     
-    complex128 v34[2];
+    T v34[2];
     if (pt != 0) {
         _vx_no_BRST_check_massive_pp_nonzero_pt_nonzero(p, nhel, hel0, nsvahl, pp, pt, emp, v34);
     }
@@ -431,25 +481,28 @@ void _vx_no_BRST_check_massive_pp_nonzero(const double* p, double vmass, double 
     v[3] = v5;
 }
 
-void _vx_no_BRST_check_massive_pp_nonzero_pt_nonzero(const double* p, double nhel, double hel0, double nsvahl, double pp, double pt, double emp, complex128* v) {
+template <typename T>
+void _vx_no_BRST_check_massive_pp_nonzero_pt_nonzero(const double* p, double nhel, double hel0, double nsvahl, double pp, double pt, double emp, T* v) {
     double pzpt = p[3] / (pp * pt) * SQH * nhel;
-    v[0] = complex128(hel0 * p[1] * emp - p[1] * pzpt, -nsvahl * p[2] / pt * SQH);
-    v[1] = complex128(hel0 * p[2] * emp - p[2] * pzpt, nsvahl * p[1] / pt * SQH);
+    v[0] = T(hel0 * p[1] * emp - p[1] * pzpt, -nsvahl * p[2] / pt * SQH);
+    v[1] = T(hel0 * p[2] * emp - p[2] * pzpt, nsvahl * p[1] / pt * SQH);
 }
 
-void _vx_no_BRST_check_massive_pp_nonzero_pt_zero(const double* p, double nhel, double nsvahl, complex128* v) {
-    v[0] = complex128(-nhel * SQH, 0);
-    v[1] = complex128(0.0, nsvahl * signvec(SQH, p[3]));
+template <typename T>
+void _vx_no_BRST_check_massive_pp_nonzero_pt_zero(const double* p, double nhel, double nsvahl, T* v) {
+    v[0] = T(-nhel * SQH, 0);
+    v[1] = T(0.0, nsvahl * signvec(SQH, p[3]));
 }
 
-void _vx_no_BRST_check_massless(const double* p, double nhel, double nsv, complex128* v) {
+template <typename T>
+void _vx_no_BRST_check_massless(const double* p, double nhel, double nsv, T* v) {
     double pp = p[0];
     double pt = sqrt(p[1] * p[1] + p[2] * p[2]);
     
-    complex128 v2 = complex128(0, 0);
-    complex128 v5 = complex128(nhel * pt / pp * SQH, 0);
+    T v2 = T(0, 0);
+    T v5 = T(nhel * pt / pp * SQH, 0);
     
-    complex128 v34[2];
+    T v34[2];
     if (pt != 0) {
         _vx_no_BRST_check_massless_pt_nonzero(p, nhel, nsv, pp, pt, v34);
     }
@@ -463,16 +516,18 @@ void _vx_no_BRST_check_massless(const double* p, double nhel, double nsv, comple
     v[3] = v5;
 }
 
-void _vx_no_BRST_check_massless_pt_nonzero(const double* p, double nhel, double nsv, double pp, double pt, complex128* v) {
+template <typename T>
+void _vx_no_BRST_check_massless_pt_nonzero(const double* p, double nhel, double nsv, double pp, double pt, T* v) {
     double pzpt = p[3] / (pp * pt) * SQH * nhel;
     
-    v[0] = complex128(-p[1] * pzpt, -nsv * p[2] / pt * SQH);
-    v[1] = complex128(-p[2] * pzpt, nsv * p[1] / pt * SQH);
+    v[0] = T(-p[1] * pzpt, -nsv * p[2] / pt * SQH);
+    v[1] = T(-p[2] * pzpt, nsv * p[1] / pt * SQH);
 }
 
-void _vx_no_BRST_check_massless_pt_zero(const double* p, double nhel, double nsv, complex128* v) {
-    v[0] = complex128(-nhel * SQH, 0);
-    v[1] = complex128(0, nsv * signvec(SQH, p[3]));
+template <typename T>
+void _vx_no_BRST_check_massless_pt_zero(const double* p, double nhel, double nsv, T* v) {
+    v[0] = T(-nhel * SQH, 0);
+    v[1] = T(0, nsv * signvec(SQH, p[3]));
 }
 
 double sign(double x, double y) {
@@ -485,9 +540,10 @@ double signvec(double x, double y) {
     return sign(x, y);
 }
 
-void vxxxxx(const double* p, double vmass, double nhel, double nsv, complex128* ret) {
-    complex128 v0 = complex128(p[0] * nsv, p[3] * nsv);
-    complex128 v1 = complex128(p[1] * nsv, p[2] * nsv);
+template <typename T>
+void vxxxxx(const double* p, double vmass, double nhel, double nsv, T* ret) {
+    T v0 = T(p[0] * nsv, p[3] * nsv);
+    T v1 = T(p[1] * nsv, p[2] * nsv);
     
     double pt2 = p[1] * p[1] + p[2] * p[2];
     double pp = std::min(p[0], sqrt(pt2 + p[3] * p[3]));
@@ -496,7 +552,7 @@ void vxxxxx(const double* p, double vmass, double nhel, double nsv, complex128* 
     double hel0 = 1 - abs(nhel);
     double nsvahl = nsv * abs(nhel);
     
-    complex128 v[4];
+    T v[4];
     
     if (nhel == 4) {
         _vx_BRST_check(p, vmass, v);
@@ -511,13 +567,14 @@ void vxxxxx(const double* p, double vmass, double nhel, double nsv, complex128* 
         ret[i+2] = v[i];
 }
 
-void ixxxxx(const double* p, double fmass, double nhel, double nsf, complex128* ret) {
-    complex128 v0 = complex128(-p[0] * nsf, -p[3] * nsf);
-    complex128 v1 = complex128(-p[1] * nsf, -p[2] * nsf);
+template <typename T>
+void ixxxxx(const double* p, double fmass, double nhel, double nsf, T* ret) {
+    T v0 = T(-p[0] * nsf, -p[3] * nsf);
+    T v1 = T(-p[1] * nsf, -p[2] * nsf);
     
     double nh = nhel * nsf;
     
-    complex128 v[4];
+    T v[4];
     
     if (fmass != 0) {
         _ix_massive(p, fmass, nsf, nh, v);
@@ -532,13 +589,14 @@ void ixxxxx(const double* p, double fmass, double nhel, double nsf, complex128* 
         ret[i+2] = v[i];
 }
 
-void oxxxxx(const double* p, double fmass, double nhel, double nsf, complex128* ret) {
-    complex128 v0 = complex128(p[0] * nsf, p[3] * nsf);
-    complex128 v1 = complex128(p[1] * nsf, p[2] * nsf);
+template <typename T>
+void oxxxxx(const double* p, double fmass, double nhel, double nsf, T* ret) {
+    T v0 = T(p[0] * nsf, p[3] * nsf);
+    T v1 = T(p[1] * nsf, p[2] * nsf);
     
     double nh = nhel * nsf;
     
-    complex128 v[4];
+    T v[4];
     
     if (fmass != 0) {
         _ox_massive(p, fmass, nhel, nsf, nh, v);
@@ -553,44 +611,45 @@ void oxxxxx(const double* p, double fmass, double nhel, double nsf, complex128* 
         ret[i+2] = v[i];
 }
 
-void VVV1P0_1(complex128* V2, complex128* V3, const complex128 COUP_comp, double M1_double, double W1_double, complex128* V1) {
+template <typename T>
+void VVV1P0_1(T* V2, T* V3, const T COUP, double M1_double, double W1_double, T* V1) {
     
     // V2 -> 6-component vector
     // V3 -> 6-component vector
     
-    complex128 cI(0, 1);
-    complex128 M1 = M1_double;
-    complex128 W1 = W1_double;
-    complex128 COUP = COUP_comp;
+    T cI(0, 1);
+    T M1 = M1_double;
+    T W1 = W1_double;
+    //complex128 COUP = COUP_comp;
     
-    complex128 P2[4];
-    P2[0] = complex128(V2[0].real(), 0.0);
-    P2[1] = complex128(V2[1].real(), 0.0);
-    P2[2] = complex128(V2[1].imag(), 0.0);
-    P2[3] = complex128(V2[0].imag(), 0.0);
+    T P2[4];
+    P2[0] = T(V2[0].real(), 0.0);
+    P2[1] = T(V2[1].real(), 0.0);
+    P2[2] = T(V2[1].imag(), 0.0);
+    P2[3] = T(V2[0].imag(), 0.0);
     
-    complex128 P3[4];
-    P3[0] = complex128(V3[0].real(), 0.0);
-    P3[1] = complex128(V3[1].real(), 0.0);
-    P3[2] = complex128(V3[1].imag(), 0.0);
-    P3[3] = complex128(V3[0].imag(), 0.0);
+    T P3[4];
+    P3[0] = T(V3[0].real(), 0.0);
+    P3[1] = T(V3[1].real(), 0.0);
+    P3[2] = T(V3[1].imag(), 0.0);
+    P3[3] = T(V3[0].imag(), 0.0);
     
     V1[0] = V2[0] + V3[0];
     V1[1] = V2[1] + V3[1];
     
-    complex128 P1[4];
-    P1[0] = complex128(-V1[0].real(), 0.0);
-    P1[1] = complex128(-V1[1].real(), 0.0);
-    P1[2] = complex128(-V1[1].imag(), 0.0);
-    P1[3] = complex128(-V1[0].imag(), 0.0);
+    T P1[4];
+    P1[0] = T(-V1[0].real(), 0.0);
+    P1[1] = T(-V1[1].real(), 0.0);
+    P1[2] = T(-V1[1].imag(), 0.0);
+    P1[3] = T(-V1[0].imag(), 0.0);
     
-    complex128 TMP0 = (V3[2]*P1[0] - V3[3]*P1[1] - V3[4]*P1[2] - V3[5]*P1[3]);
-    complex128 TMP1 = (V3[2]*P2[0] - V3[3]*P2[1] - V3[4]*P2[2] - V3[5]*P2[3]);
-    complex128 TMP2 = (P1[0]*V2[2] - P1[1]*V2[3] - P1[2]*V2[4] - P1[3]*V2[5]);
-    complex128 TMP3 = (V2[2]*P3[0] - V2[3]*P3[1] - V2[4]*P3[2] - V2[5]*P3[3]);
-    complex128 TMP4 = (V3[2]*V2[2] - V3[3]*V2[3] - V3[4]*V2[4] - V3[5]*V2[5]);
+    T TMP0 = (V3[2]*P1[0] - V3[3]*P1[1] - V3[4]*P1[2] - V3[5]*P1[3]);
+    T TMP1 = (V3[2]*P2[0] - V3[3]*P2[1] - V3[4]*P2[2] - V3[5]*P2[3]);
+    T TMP2 = (P1[0]*V2[2] - P1[1]*V2[3] - P1[2]*V2[4] - P1[3]*V2[5]);
+    T TMP3 = (V2[2]*P3[0] - V2[3]*P3[1] - V2[4]*P3[2] - V2[5]*P3[3]);
+    T TMP4 = (V3[2]*V2[2] - V3[3]*V2[3] - V3[4]*V2[4] - V3[5]*V2[5]);
     
-    complex128 denom = COUP/(P1[0]*P1[0] - P1[1]*P1[1] - P1[2]*P1[2] - P1[3]*P1[3] - M1 * (M1 -cI* W1));
+    T denom = COUP/(P1[0]*P1[0] - P1[1]*P1[1] - P1[2]*P1[2] - P1[3]*P1[3] - M1 * (M1 -cI* W1));
     
     V1[2]= denom * (TMP4 * (-cI*(P2[0]) + cI*(P3[0])) + (V2[2]*(-cI*(TMP0) + cI*(TMP1)) + V3[2]*(cI*(TMP2) - cI*(TMP3))));
     V1[3]= denom * (TMP4 * (-cI*(P2[1]) + cI*(P3[1])) + (V2[3]*(-cI*(TMP0) + cI*(TMP1)) + V3[3]*(cI*(TMP2) - cI*(TMP3))));
@@ -598,29 +657,31 @@ void VVV1P0_1(complex128* V2, complex128* V3, const complex128 COUP_comp, double
     V1[5]= denom * (TMP4 * (-cI*(P2[3]) + cI*(P3[3])) + (V2[5]*(-cI*(TMP0) + cI*(TMP1)) + V3[5]*(cI*(TMP2) - cI*(TMP3))));
 }
 
-void FFV1_0(complex128* F1, complex128* F2, complex128* V3, const complex128 COUP_comp, complex128& amp) {
-    complex128 cI(0, 1);
-    complex128 COUP = COUP_comp;
-    complex128 TMP5 = (F1[2]*(F2[4]*(V3[2]+V3[5])+F2[5]*(V3[3]+cI*(V3[4])))+(F1[3]*(F2[4]*(V3[3]-cI*(V3[4]))+F2[5]*(V3[2]-V3[5]))+(F1[4]*(F2[2]*(V3[2]-V3[5])-F2[3]*(V3[3]+cI*(V3[4])))+F1[5]*(F2[2]*(-V3[3]+cI*(V3[4]))+F2[3]*(V3[2]+V3[5])))));
+template <typename T>
+void FFV1_0(T* F1, T* F2, T* V3, const T COUP, T& amp) {
+    T cI(0, 1);
+    //complex128 COUP = COUP_comp;
+    T TMP5 = (F1[2]*(F2[4]*(V3[2]+V3[5])+F2[5]*(V3[3]+cI*(V3[4])))+(F1[3]*(F2[4]*(V3[3]-cI*(V3[4]))+F2[5]*(V3[2]-V3[5]))+(F1[4]*(F2[2]*(V3[2]-V3[5])-F2[3]*(V3[3]+cI*(V3[4])))+F1[5]*(F2[2]*(-V3[3]+cI*(V3[4]))+F2[3]*(V3[2]+V3[5])))));
     amp = COUP*-cI * TMP5;
 }
 
-void FFV1_1(complex128* F2, complex128* V3, const complex128 COUP_comp, double M1_double, double W1_double, complex128* F1) {
-    complex128 cI(0, 1);
-    complex128 M1 = M1_double;
-    complex128 W1 = W1_double;
-    complex128 COUP = COUP_comp;
+template <typename T>
+void FFV1_1(T* F2, T* V3, const T COUP, double M1_double, double W1_double, T* F1) {
+    T cI(0, 1);
+    T M1 = M1_double;
+    T W1 = W1_double;
+    //complex128 COUP = COUP_comp;
     
     F1[0] = F2[0] + V3[0];
     F1[1] = F2[1] + V3[1];
     
-    complex128 P1[4];
-    P1[0] = complex128(-F1[0].real(), 0.0);
-    P1[1] = complex128(-F1[1].real(), 0.0);
-    P1[2] = complex128(-F1[1].imag(), 0.0);
-    P1[3] = complex128(-F1[0].imag(), 0.0);
+    T P1[4];
+    P1[0] = T(-F1[0].real(), 0.0);
+    P1[1] = T(-F1[1].real(), 0.0);
+    P1[2] = T(-F1[1].imag(), 0.0);
+    P1[3] = T(-F1[0].imag(), 0.0);
     
-    complex128 denom = COUP/(P1[0]*P1[0] - P1[1]*P1[1] - P1[2]*P1[2] - P1[3]*P1[3] - M1 * (M1 -cI* W1));
+    T denom = COUP/(P1[0]*P1[0] - P1[1]*P1[1] - P1[2]*P1[2] - P1[3]*P1[3] - M1 * (M1 -cI* W1));
     
     F1[2]= denom*cI*(F2[2]*(P1[0]*(-V3[2]+V3[5])+(P1[1]*(V3[3]-cI*(V3[4]))+(P1[2]*(cI*(V3[3])+V3[4])+P1[3]*(-V3[2]+V3[5]))))+(F2[3]*(P1[0]*(V3[3]+cI*(V3[4]))+(P1[1]*(-1./1.)*(V3[2]+V3[5])+(P1[2]*(-1./1.)*(cI*(V3[2]+V3[5]))+P1[3]*(V3[3]+cI*(V3[4])))))+M1*(F2[4]*(V3[2]+V3[5])+F2[5]*(V3[3]+cI*(V3[4])))));
     F1[3]= denom*(-cI)*(F2[2]*(P1[0]*(-V3[3]+cI*(V3[4]))+(P1[1]*(V3[2]-V3[5])+(P1[2]*(-cI*(V3[2])+cI*(V3[5]))+P1[3]*(V3[3]-cI*(V3[4])))))+(F2[3]*(P1[0]*(V3[2]+V3[5])+(P1[1]*(-1./1.)*(V3[3]+cI*(V3[4]))+(P1[2]*(cI*(V3[3])-V3[4])-P1[3]*(V3[2]+V3[5]))))+M1*(F2[4]*(-V3[3]+cI*(V3[4]))+F2[5]*(-V3[2]+V3[5]))));
@@ -630,22 +691,23 @@ void FFV1_1(complex128* F2, complex128* V3, const complex128 COUP_comp, double M
     //return F1;
 }
 
-void FFV1_2(complex128* F1, complex128* V3, const complex128 COUP_comp, double M2_double, double W2_double, complex128* F2) {
-    complex128 cI(0, 1);
-    complex128 M2 = M2_double;
-    complex128 W2 = W2_double;
-    complex128 COUP = COUP_comp;
+template <typename T>
+void FFV1_2(T* F1, T* V3, const T COUP, double M2_double, double W2_double, T* F2) {
+    T cI(0, 1);
+    T M2 = M2_double;
+    T W2 = W2_double;
+    //complex128 COUP = COUP_comp;
     
     F2[0] = F1[0] + V3[0];
     F2[1] = F1[1] + V3[1];
     
-    complex128 P2[4];
-    P2[0] = complex128(-F2[0].real(), 0.0);
-    P2[1] = complex128(-F2[1].real(), 0.0);
-    P2[2] = complex128(-F2[1].imag(), 0.0);
-    P2[3] = complex128(-F2[0].imag(), 0.0);
+    T P2[4];
+    P2[0] = T(-F2[0].real(), 0.0);
+    P2[1] = T(-F2[1].real(), 0.0);
+    P2[2] = T(-F2[1].imag(), 0.0);
+    P2[3] = T(-F2[0].imag(), 0.0);
     
-    complex128 denom = COUP/(P2[0]*P2[0] - P2[1]*P2[1] - P2[2]*P2[2] - P2[3]*P2[3] - M2 * (M2 -cI* W2));
+    T denom = COUP/(P2[0]*P2[0] - P2[1]*P2[1] - P2[2]*P2[2] - P2[3]*P2[3] - M2 * (M2 -cI* W2));
     
     F2[2]= denom*cI*(F1[2]*(P2[0]*(V3[2]+V3[5])+(P2[1]*(-1./1.)*(V3[3]+cI*(V3[4]))+(P2[2]*(cI*(V3[3])-V3[4])-P2[3]*(V3[2]+V3[5]))))+(F1[3]*(P2[0]*(V3[3]-cI*(V3[4]))+(P2[1]*(-V3[2]+V3[5])+(P2[2]*(cI*(V3[2])-cI*(V3[5]))+P2[3]*(-V3[3]+cI*(V3[4])))))+M2*(F1[4]*(V3[2]-V3[5])+F1[5]*(-V3[3]+cI*(V3[4])))));
     F2[3]= denom*(-cI)*(F1[2]*(P2[0]*(-1./1.)*(V3[3]+cI*(V3[4]))+(P2[1]*(V3[2]+V3[5])+(P2[2]*(cI*(V3[2]+V3[5]))-P2[3]*(V3[3]+cI*(V3[4])))))+(F1[3]*(P2[0]*(-V3[2]+V3[5])+(P2[1]*(V3[3]-cI*(V3[4]))+(P2[2]*(cI*(V3[3])+V3[4])+P2[3]*(-V3[2]+V3[5]))))+M2*(F1[4]*(V3[3]+cI*(V3[4]))-F1[5]*(V3[2]+V3[5]))));

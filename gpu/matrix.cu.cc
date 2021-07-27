@@ -13,7 +13,7 @@ using GPUDevice = Eigen::GpuDevice;
 //#define COMPLEX_TYPE thrust::complex<double>
 #define COMPLEX_CONJUGATE conj//thrust::conj
 
-#define DEFAULT_BLOCK_SIZE 1024//256//1024
+#define DEFAULT_BLOCK_SIZE 256//1024
 
 __device__ double SQH;// = 0.70710676908493; // tf.math.sqrt(0.5) == 0.70710676908493;
 __device__ COMPLEX_TYPE CZERO;// = COMPLEX_TYPE(0.0, 0.0);
@@ -94,9 +94,12 @@ __device__ COMPLEX_TYPE cmult(COMPLEX_TYPE a, double b) {
     return COMPLEX_TYPE(a.real() * b, a.imag() * b);
 }
 
-
 __device__ COMPLEX_TYPE cconj(COMPLEX_TYPE a) {
     return COMPLEX_TYPE(a.real(), -a.imag());
+}
+
+__device__ void assign(COMPLEX_TYPE& a, const COMPLEX_TYPE b) {
+    a = b;
 }
  
 
@@ -123,33 +126,33 @@ __global__ void MatrixCudaKernel(const double* all_ps, const double* hel, const 
     // Begin code
     for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < nevents; i += blockDim.x * gridDim.x) {
         T w0[6], w1[6], w2[6], w3[6], w4[6];
-        vxxxxx<T>(all_ps+(16*i), ZERO, hel[0], -1, w0);
-        vxxxxx<T>(all_ps+(16*i+4), ZERO, hel[1], -1, w1);
-        oxxxxx<T>(all_ps+(16*i+8), mdl_MT[0], hel[2], +1, w2);
-        ixxxxx<T>(all_ps+(16*i+12), mdl_MT[0], hel[3], -1, w3);
-        VVV1P0_1<T>(w0, w1, GC_10[i], ZERO, ZERO, w4);
+        vxxxxx(all_ps+(16*i), ZERO, hel[0], -1, w0);
+        vxxxxx(all_ps+(16*i+4), ZERO, hel[1], -1, w1);
+        oxxxxx(all_ps+(16*i+8), mdl_MT[0], hel[2], +1, w2);
+        ixxxxx(all_ps+(16*i+12), mdl_MT[0], hel[3], -1, w3);
+        VVV1P0_1(w0, w1, GC_10[i], ZERO, ZERO, w4);
         
         // Amplitude(s) for diagram number 1
         
         T amp0;
-        FFV1_0<T>(w3, w2, w4, GC_11[i], amp0);
-        FFV1_1<T>(w2, w0, GC_11[i], mdl_MT[0], mdl_WT[0], w4);
+        FFV1_0(w3, w2, w4, GC_11[i], amp0);
+        FFV1_1(w2, w0, GC_11[i], mdl_MT[0], mdl_WT[0], w4);
         
         // Amplitude(s) for diagram number 2
         
         T amp1;
-        FFV1_0<T>(w3, w4, w1, GC_11[i], amp1);
-        FFV1_2<T>(w3, w0, GC_11[i], mdl_MT[0], mdl_WT[0], w4);
+        FFV1_0(w3, w4, w1, GC_11[i], amp1);
+        FFV1_2(w3, w0, GC_11[i], mdl_MT[0], mdl_WT[0], w4);
         
         // Amplitude(s) for diagram number 3
         
         T amp2;
-        FFV1_0<T>(w4, w2, w1, GC_11[i], amp2);
+        FFV1_0(w4, w2, w1, GC_11[i], amp2);
         
         T jamp[2] = {T(0, 1) * amp0 - amp1, -T(0, 1) * amp0 - amp2};
         
         //T ret(0, 0);
-        double ret;
+        double ret = 0;
         for (int a = 0; a < 2; a++) {
             for (int b = 0; b < 2; b++) {
                 // ret = tf.einsum("ae, ab, be -> e", jamp, cf, tf.math.conj(jamp)/tf.reshape(denom, (ncolor, 1)))
@@ -291,6 +294,7 @@ template <typename T>
 __device__ void _vx_BRST_check_massless(const double* p, T* v) {
     for (int i = 0; i < 4; i++) {
         //v[i] = p[i]/p[0];
+        assign(v[i], p[i]/p[0]);
     }
 }
 
@@ -298,6 +302,7 @@ template <typename T>
 __device__ void _vx_BRST_check_massive(const double* p, double vmass, T* v) {
     for (int i = 0; i < 4; i++) {
         //v[i] = p[i]/vmass;
+        assign(v[i], p[i]/vmass);
     }
 }
 
