@@ -5,7 +5,7 @@
 
 #include "tensorflow/core/framework/op.h"
 #include "tensorflow/core/framework/op_kernel.h"
-#include <cuComplex.h>
+//#include <cuComplex.h>
 using namespace tensorflow;
 
 template <typename Device, typename T>
@@ -21,7 +21,7 @@ struct MatrixFunctor<Eigen::GpuDevice, T> {
 };
 #endif
 
-#include <thrust/complex.h>
+//#include <thrust/complex.h>
 
 #define COMPLEX_TYPE complex128//thrust::complex<double>
 

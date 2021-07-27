@@ -223,7 +223,7 @@ void matrix(const double* all_ps, const double* hel, const double* mdl_MT, const
         T amp2;
         FFV1_0(w4, w2, w1, GC_11[i], amp2);
         
-        T jamp[2] = {complex128(0, 1) * amp0 - amp1, -complex128(0, 1) * amp0 - amp2};
+        T jamp[2] = {T(0, 1) * amp0 - amp1, -T(0, 1) * amp0 - amp2};
         
         T ret(0, 0);
         for (int a = 0; a < 2; a++) {
