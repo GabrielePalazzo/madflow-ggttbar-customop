@@ -266,10 +266,29 @@ class Matrix_1_gg_ttx(object):
         nevts = tf.shape(all_ps, out_type=DTYPEINT)[0]
         matrixOp = tf.load_op_library('./matrix_cu.so')
         ans2 = tf.zeros(nevts, dtype=DTYPE)
-        
+        i = 0
         for hel in self.helicities:
+            #tf.print(i)
             #start = time.time()
-            ans2 += matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11)
+            tmp = tf.zeros(nevts, dtype=DTYPE)
+            tmp = matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11)
+            ans2 += tmp
+            #ten = tf.range(nevts, dtype=DTYPE)
+            ZERO = float_me(0.)
+            w0 = vxxxxx(all_ps[:,0],ZERO,hel[0],float_me(-1))
+            w1 = vxxxxx(all_ps[:,1],ZERO,hel[1],float_me(-1))
+            w2 = oxxxxx(all_ps[:,2],mdl_MT,hel[2],float_me(+1))
+            w3 = ixxxxx(all_ps[:,3],mdl_MT,hel[3],float_me(-1))
+            w4= VVV1P0_1(w0,w1,GC_10,ZERO,ZERO)
+            #tf.print(tmp - ten)
+            tf.print(tf.math.real(w4[2,:]))
+            tf.print(tmp)
+            #tf.debugging.assert_equal(tmp)
+            dist = tf.fill(tf.shape(tmp), float_me(0.0001))
+            result = tf.math.less_equal(tf.math.abs(tmp - tf.math.real(w4[2,:])), dist)
+            tf.debugging.assert_equal(result, True)
+            i += 1
+        return (ans2)
             #end = time.time()
             #tf.print(f"(Custom Operator: took {end-start:.5f} s)")
             #tf.print("Custom Operator memory usage:", process.memory_info().rss)

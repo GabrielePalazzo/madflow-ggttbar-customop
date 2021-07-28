@@ -13,9 +13,9 @@ using GPUDevice = Eigen::GpuDevice;
 //#define COMPLEX_TYPE thrust::complex<double>
 #define COMPLEX_CONJUGATE conj//thrust::conj
 
-#define DEFAULT_BLOCK_SIZE 256//1024
+#define DEFAULT_BLOCK_SIZE 1024//256//1024
 
-__device__ double SQH;// = 0.70710676908493; // tf.math.sqrt(0.5) == 0.70710676908493;
+__device__ double SQH = 0.70710676908493; // tf.math.sqrt(0.5) == 0.70710676908493;
 __device__ COMPLEX_TYPE CZERO;// = COMPLEX_TYPE(0.0, 0.0);
 template <typename T>
 __device__ void vxxxxx(const double* p, double fmass, double nhel, double nsf, T*);
@@ -120,13 +120,15 @@ __global__ void MatrixCudaKernel(const double* all_ps, const double* hel, const 
     cf[2] = -2;
     cf[3] = 16;
     
-    __shared__ double ZERO;
+    /*__shared__ */double ZERO;
     ZERO = 0.;
-        
+    
     // Begin code
     //for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < nevents; i += blockDim.x * gridDim.x) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i < nevents) {
+    //printf("Thread id: %i\n", i);
+    if (i == 99999) output_flat[i] = 1;
+    else if (i < nevents) {
         T w0[6], w1[6], w2[6], w3[6], w4[6];
         vxxxxx(all_ps+(16*i), ZERO, hel[0], -1, w0);
         vxxxxx(all_ps+(16*i+4), ZERO, hel[1], -1, w1);
@@ -138,13 +140,13 @@ __global__ void MatrixCudaKernel(const double* all_ps, const double* hel, const 
         
         T amp0(0,0);
         FFV1_0(w3, w2, w4, GC_11[i], &amp0);
-        FFV1_1(w2, w0, GC_11[i], mdl_MT[0], mdl_WT[0], w4);
+        //FFV1_1(w2, w0, GC_11[i], mdl_MT[0], mdl_WT[0], w4);
         
         // Amplitude(s) for diagram number 2
         
         T amp1(0,0);
         FFV1_0(w3, w4, w1, GC_11[i], &amp1);
-        FFV1_2(w3, w0, GC_11[i], mdl_MT[0], mdl_WT[0], w4);
+        //FFV1_2(w3, w0, GC_11[i], mdl_MT[0], mdl_WT[0], w4);
         
         // Amplitude(s) for diagram number 3
         
@@ -162,7 +164,7 @@ __global__ void MatrixCudaKernel(const double* all_ps, const double* hel, const 
                 ret += (cmult(cmult(jamp[a], cf[a * 2 + b]), cconj(jamp[b])) / denom[b]).real();
             }
         }
-        output_flat[i] = ret;//.real();
+        output_flat[i] = w4[2].real();//ret;//.real();
     }
 }
 
@@ -325,7 +327,7 @@ __device__ void _vx_no_BRST_check_massive(const double* p, double vmass, double 
 template <typename T>
 __device__ void _vx_no_BRST_check_massive_pp_zero(double nhel, double nsvahl, T* v) {
     double hel0 = 1.0 - abs(nhel);
-    SQH = sqrt(0.5); // !!!!
+    //SQH = sqrt(0.5); // !!!!
     v[0] = T(1, 0);
     v[1] = T(-nhel * SQH, 0.0);
     v[2] = T(0.0, nsvahl * SQH);
@@ -335,7 +337,7 @@ __device__ void _vx_no_BRST_check_massive_pp_zero(double nhel, double nsvahl, T*
 template <typename T>
 __device__ void _vx_no_BRST_check_massive_pp_nonzero(const double* p, double vmass, double nhel, double hel0, double nsvahl, double pp, double pt, T* v) {
     double emp = p[0] / (vmass * pp);
-    SQH = sqrt(0.5); // !!!!
+    //SQH = sqrt(0.5); // !!!!
     T v2 = T(hel0 * pp / vmass, 0.0);
     T v5 = T(hel0 * p[3] * emp + (nhel * pt) / (pp * SQH), 0.0);
     
@@ -354,7 +356,7 @@ __device__ void _vx_no_BRST_check_massive_pp_nonzero(const double* p, double vma
 
 template <typename T>
 __device__ void _vx_no_BRST_check_massive_pp_nonzero_pt_nonzero(const double* p, double nhel, double hel0, double nsvahl, double pp, double pt, double emp, T* v) {
-    SQH = sqrt(0.5); // !!!!
+    //SQH = sqrt(0.5); // !!!!
     double pzpt = p[3] / (pp * pt) * SQH * nhel;
     v[0] = T(hel0 * p[1] * emp - p[1] * pzpt, -nsvahl * p[2] / pt * SQH);
     v[1] = T(hel0 * p[2] * emp - p[2] * pzpt, nsvahl * p[1] / pt * SQH);
@@ -362,7 +364,7 @@ __device__ void _vx_no_BRST_check_massive_pp_nonzero_pt_nonzero(const double* p,
 
 template <typename T>
 __device__ void _vx_no_BRST_check_massive_pp_nonzero_pt_zero(const double* p, double nhel, double nsvahl, T* v) {
-    SQH = sqrt(0.5); // !!!!
+    //SQH = sqrt(0.5); // !!!!
     v[0] = T(-nhel * SQH, 0);
     v[1] = T(0.0, nsvahl * signvecc(SQH, p[3]));
 }
@@ -371,7 +373,7 @@ template <typename T>
 __device__ void _vx_no_BRST_check_massless(const double* p, double nhel, double nsv, T* v) {
     double pp = p[0];
     double pt = sqrt(p[1] * p[1] + p[2] * p[2]);
-    SQH = sqrt(0.5); // !!!!
+    //SQH = sqrt(0.5); // !!!!
     
     T v2 = T(0, 0);
     T v5 = T(nhel * pt / pp * SQH, 0);
@@ -392,7 +394,7 @@ __device__ void _vx_no_BRST_check_massless(const double* p, double nhel, double 
 
 template <typename T>
 __device__ void _vx_no_BRST_check_massless_pt_nonzero(const double* p, double nhel, double nsv, double pp, double pt, T* v) {
-    SQH = sqrt(0.5); // !!!!
+    //SQH = sqrt(0.5); // !!!!
     double pzpt = p[3] / (pp * pt) * SQH * nhel;
     
     v[0] = T(-p[1] * pzpt, -nsv * p[2] / pt * SQH);
@@ -401,7 +403,7 @@ __device__ void _vx_no_BRST_check_massless_pt_nonzero(const double* p, double nh
 
 template <typename T>
 __device__ void _vx_no_BRST_check_massless_pt_zero(const double* p, double nhel, double nsv, T* v) {
-    SQH = sqrt(0.5); // !!!!
+    //SQH = sqrt(0.5); // !!!!
     v[0] = T(-nhel * SQH, 0);
     v[1] = T(0, nsv * signvecc(SQH, p[3]));
 }
@@ -606,9 +608,9 @@ __device__ void VVV1P0_1(T* V2, T* V3, const T COUP, double M1_double, double W1
     // V2 -> 6-component vector
     // V3 -> 6-component vector
     
-    T cI(0, 1);
-    T M1 = T(M1_double, 0);
-    T W1 = T(W1_double, 0);
+    T cI(0.0, 1.0);
+    T M1 = T(M1_double, 0.0);
+    T W1 = T(W1_double, 0.0);
     //COMPLEX_TYPE COUP = COUP_comp;
     
     T P2[4];
