@@ -13,7 +13,7 @@ using GPUDevice = Eigen::GpuDevice;
 //#define COMPLEX_TYPE thrust::complex<double>
 #define COMPLEX_CONJUGATE conj//thrust::conj
 
-#define DEFAULT_BLOCK_SIZE 1024//256//1024
+#define DEFAULT_BLOCK_SIZE 256//1024
 
 __device__ double SQH = 0.70710676908493; // tf.math.sqrt(0.5) == 0.70710676908493;
 __device__ COMPLEX_TYPE CZERO;// = COMPLEX_TYPE(0.0, 0.0);
@@ -141,16 +141,16 @@ __global__ void MatrixCudaKernel(const double* all_ps, const double* hel, const 
         VVV1P0_1(w0, w1, GC_10[i], ZERO, ZERO, w4);
         
         // Amplitude(s) for diagram number 1
-        /*
+        
         T amp0(0,0);
         FFV1_0(w3, w2, w4, GC_11[i], &amp0);
-        //FFV1_1(w2, w0, GC_11[i], mdl_MT[0], mdl_WT[0], w4);
+        FFV1_1(w2, w0, GC_11[i], mdl_MT[0], mdl_WT[0], w4);
         
         // Amplitude(s) for diagram number 2
         
         T amp1(0,0);
         FFV1_0(w3, w4, w1, GC_11[i], &amp1);
-        //FFV1_2(w3, w0, GC_11[i], mdl_MT[0], mdl_WT[0], w4);
+        FFV1_2(w3, w0, GC_11[i], mdl_MT[0], mdl_WT[0], w4);
         
         // Amplitude(s) for diagram number 3
         
@@ -167,8 +167,8 @@ __global__ void MatrixCudaKernel(const double* all_ps, const double* hel, const 
                 //ret += ((jamp[a] * cf[a * 2 + b] * COMPLEX_CONJUGATE(jamp[b])) / denom[b]).real();
                 ret += (cmult(cmult(jamp[a], cf[a * 2 + b]), cconj(jamp[b])) / denom[b]).real();
             }
-        }*/
-        output_flat[i] = w4[2].real();//ret;//.real();
+        }
+        output_flat[i] = ret;//.real();
     }
 }
 
@@ -660,7 +660,7 @@ __device__ void VVV1P0_1(const T* V2, const T* V3, const T COUP, const double M1
     T TMP4 = (V3[2]*V2[2] - V3[3]*V2[3] - V3[4]*V2[4] - V3[5]*V2[5]);
     
     T denom = COUP/(P1[0]*P1[0] - P1[1]*P1[1] - P1[2]*P1[2] - P1[3]*P1[3] - M1 * (M1 -cI* W1));
-    denom = T(0,0);
+    
     
     V1[2]= denom * (TMP4 * (-cI*(P2[0]) + cI*(P3[0])) + (V2[2]*(-cI*(TMP0) + cI*(TMP1)) + V3[2]*(cI*(TMP2) - cI*(TMP3))));
     V1[3]= denom * (TMP4 * (-cI*(P2[1]) + cI*(P3[1])) + (V2[3]*(-cI*(TMP0) + cI*(TMP1)) + V3[3]*(cI*(TMP2) - cI*(TMP3))));
@@ -703,7 +703,7 @@ __device__ void VVV1P0_1(const T* V2, const T* V3, const T COUP, const double M1
 template <typename T>
 __device__ void FFV1_0(const T* F1, const T* F2, const T* V3, const T COUP, T* amp) {
     T cI(0, 1);
-    
+    /*
     T v325p = V3[2]+V3[5];
     T v325m = V3[2]-V3[5];
     T v334p = V3[3]+cI*V3[4];
@@ -714,11 +714,11 @@ __device__ void FFV1_0(const T* F1, const T* F2, const T* V3, const T COUP, T* a
            + F1[4] * ( F2[2] * v325m - F2[3] * v334p)
            + F1[5] * (-F2[2] * v334m + F2[3] * v325p);
     
-    
-    /*T TMP5 = (F1[2] * (F2[4] * (V3[2]+V3[5]) + F2[5] * (V3[3] + cI * (V3[4]))) + 
+    */
+    T TMP5 = (F1[2] * (F2[4] * (V3[2]+V3[5]) + F2[5] * (V3[3] + cI * (V3[4]))) + 
                                  (F1[3] * (F2[4] * (V3[3] - cI * (V3[4])) + F2[5] * (V3[2] - V3[5])) + 
                                  (F1[4] * (F2[2] * (V3[2] - V3[5]) - F2[3] * (V3[3] + cI * (V3[4]))) + 
-                                  F1[5] * (F2[2] * (-V3[3] + cI * (V3[4])) + F2[3] * (V3[2] + V3[5])))));*/
+                                  F1[5] * (F2[2] * (-V3[3] + cI * (V3[4])) + F2[3] * (V3[2] + V3[5])))));
     *amp = COUP * -cI * TMP5;
 }
 

@@ -270,6 +270,8 @@ class Matrix_1_gg_ttx(object):
         for hel in self.helicities:
             #tf.print(i)
             #start = time.time()
+            ans2 += matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11)
+            """
             tmp = tf.zeros(nevts, dtype=DTYPE)
             tmp = matrixOp.matrix(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11)
             ans2 += tmp
@@ -288,7 +290,8 @@ class Matrix_1_gg_ttx(object):
             result = tf.math.less_equal(tf.math.abs(tmp - tf.math.real(w1[2,:])), dist)
             tf.debugging.assert_equal(result, True)
             i += 1
-        return (ans2)
+            """
+        #return (ans2)
             #end = time.time()
             #tf.print(f"(Custom Operator: took {end-start:.5f} s)")
             #tf.print("Custom Operator memory usage:", process.memory_info().rss)
