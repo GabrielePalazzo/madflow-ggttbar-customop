@@ -281,11 +281,11 @@ class Matrix_1_gg_ttx(object):
             w3 = ixxxxx(all_ps[:,3],mdl_MT,hel[3],float_me(-1))
             w4= VVV1P0_1(w0,w1,GC_10,ZERO,ZERO)
             #tf.print(tmp - ten)
-            tf.print(tf.math.real(w4[2,:]))
+            tf.print(tf.math.real(w1[2,:]))
             tf.print(tmp)
             #tf.debugging.assert_equal(tmp)
             dist = tf.fill(tf.shape(tmp), float_me(0.0001))
-            result = tf.math.less_equal(tf.math.abs(tmp - tf.math.real(w4[2,:])), dist)
+            result = tf.math.less_equal(tf.math.abs(tmp - tf.math.real(w1[2,:])), dist)
             tf.debugging.assert_equal(result, True)
             i += 1
         return (ans2)

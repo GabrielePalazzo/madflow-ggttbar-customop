@@ -71,13 +71,13 @@ template <typename T>
 __device__ void _vx_no_BRST_check_massless_pt_zero(const double* p, double nhel, double nsv, T* v);
 
 template <typename T>
-__device__ void VVV1P0_1(T* V2, T* V3, const T COUP, double M1, double W1, T*);
+__device__ void VVV1P0_1(const T* V2, const T* V3, const T COUP, const double M1, const double W1, T*);
 template <typename T>
-__device__ void FFV1_0(T* F1, T* F2, T* V3, const T COUP, T* amp);
+__device__ void FFV1_0(const T* F1, const T* F2, const T* V3, const T COUP, T* amp);
 template <typename T>
-__device__ void FFV1_1(T* F2, T* V3, const T COUP, double M1, double W1, T*);
+__device__ void FFV1_1(const T* F2, const T* V3, const T COUP, double M1, double W1, T*);
 template <typename T>
-__device__ void FFV1_2(T* F1, T* V3, const T COUP, double M1, double W1, T*);
+__device__ void FFV1_2(const T* F1, const T* V3, const T COUP, double M1, double W1, T*);
 
 __device__ double signn(double x, double y);
 __device__ double signvecc(double x, double y);
@@ -107,29 +107,33 @@ __device__ void assign(COMPLEX_TYPE& a, const COMPLEX_TYPE b) {
 template <typename T>
 __global__ void MatrixCudaKernel(const double* all_ps, const double* hel, const double* mdl_MT, const double* mdl_WT, const T* GC_10, const T* GC_11, 
             double* output_flat, const int nevents) {
-    /*
-    T denom[2];
-    denom[0] = T(3.0, 0.0);
-    denom[1] = T(3.0, 0.0);
-    */
-    double denom[2] = {3.0, 3.0};
     
-    double cf[4];
+    __shared__ double denom[2];
+    denom[0] = 3.0;
+    denom[1] = 3.0;
+    /*denom[0] = T(3.0, 0.0);
+    denom[1] = T(3.0, 0.0);*/
+    
+    //__shared__ double denom[2] = {3.0, 3.0};
+    
+    __shared__ double cf[4];
     cf[0] = 16;
     cf[1] = -2;
     cf[2] = -2;
     cf[3] = 16;
+    //__shared__ double cf[4] = {16, -2, -2, 16};
     
-    /*__shared__ */double ZERO;
+    __shared__ double ZERO;
     ZERO = 0.;
     
     // Begin code
     //for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < nevents; i += blockDim.x * gridDim.x) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     //printf("Thread id: %i\n", i);
-    if (i == 99999) output_flat[i] = 1;
-    else if (i < nevents) {
+    /*if (i == 99999) output_flat[i] = 1;
+    else */if (i < nevents) {
         T w0[6], w1[6], w2[6], w3[6], w4[6];
+        for (int j = 0; j < 6; j++) w4[j] = T(0,0);
         vxxxxx(all_ps+(16*i), ZERO, hel[0], -1, w0);
         vxxxxx(all_ps+(16*i+4), ZERO, hel[1], -1, w1);
         oxxxxx(all_ps+(16*i+8), mdl_MT[0], hel[2], +1, w2);
@@ -137,7 +141,7 @@ __global__ void MatrixCudaKernel(const double* all_ps, const double* hel, const 
         VVV1P0_1(w0, w1, GC_10[i], ZERO, ZERO, w4);
         
         // Amplitude(s) for diagram number 1
-        
+        /*
         T amp0(0,0);
         FFV1_0(w3, w2, w4, GC_11[i], &amp0);
         //FFV1_1(w2, w0, GC_11[i], mdl_MT[0], mdl_WT[0], w4);
@@ -163,7 +167,7 @@ __global__ void MatrixCudaKernel(const double* all_ps, const double* hel, const 
                 //ret += ((jamp[a] * cf[a * 2 + b] * COMPLEX_CONJUGATE(jamp[b])) / denom[b]).real();
                 ret += (cmult(cmult(jamp[a], cf[a * 2 + b]), cconj(jamp[b])) / denom[b]).real();
             }
-        }
+        }*/
         output_flat[i] = w4[2].real();//ret;//.real();
     }
 }
@@ -192,8 +196,8 @@ void MatrixFunctor<GPUDevice, T>::operator()(
     //std::cout << "<<< " << numBlocks << ", " << blockSize << " >>>" << std::endl;
     
     
-    
     MatrixCudaKernel<T><<<numBlocks, blockSize, 0, d.stream()>>>(all_ps, hel, mdl_MT, mdl_WT, GC_10, GC_11, output_flat, nevents);
+    
 }
 
 // Explicitly instantiate functors for the types of OpKernels registered.
@@ -603,14 +607,14 @@ __device__ double signvecc(double x, double y) {
 // V*
 
 template <typename T>
-__device__ void VVV1P0_1(T* V2, T* V3, const T COUP, double M1_double, double W1_double, T* V1) {
+__device__ void VVV1P0_1(const T* V2, const T* V3, const T COUP, const double M1_double, const double W1_double, T* V1) {
     
     // V2 -> 6-component vector
     // V3 -> 6-component vector
     
     T cI(0.0, 1.0);
-    T M1 = T(M1_double, 0.0);
-    T W1 = T(W1_double, 0.0);
+    const T M1 = T(M1_double, 0.0);
+    const T W1 = T(W1_double, 0.0);
     //COMPLEX_TYPE COUP = COUP_comp;
     
     T P2[4];
@@ -624,7 +628,17 @@ __device__ void VVV1P0_1(T* V2, T* V3, const T COUP, double M1_double, double W1
     P3[1] = T(V3[1].real(), 0.0);
     P3[2] = T(V3[1].imag(), 0.0);
     P3[3] = T(V3[0].imag(), 0.0);
+    /*
+    T P20 = T(V2[0].real(), 0.0);
+    T P21 = T(V2[1].real(), 0.0);
+    T P22 = T(V2[1].imag(), 0.0);
+    T P23 = T(V2[0].imag(), 0.0);
     
+    T P30 = T(V3[0].real(), 0.0);
+    T P31 = T(V3[1].real(), 0.0);
+    T P32 = T(V3[1].imag(), 0.0);
+    T P33 = T(V3[0].imag(), 0.0);
+    */
     V1[0] = V2[0] + V3[0];
     V1[1] = V2[1] + V3[1];
     
@@ -633,7 +647,12 @@ __device__ void VVV1P0_1(T* V2, T* V3, const T COUP, double M1_double, double W1
     P1[1] = T(-V1[1].real(), 0.0);
     P1[2] = T(-V1[1].imag(), 0.0);
     P1[3] = T(-V1[0].imag(), 0.0);
-    
+    /*
+    T P10 = T(-V1[0].real(), 0.0);
+    T P11 = T(-V1[1].real(), 0.0);
+    T P12 = T(-V1[1].imag(), 0.0);
+    T P13 = T(-V1[0].imag(), 0.0);
+    */
     T TMP0 = (V3[2]*P1[0] - V3[3]*P1[1] - V3[4]*P1[2] - V3[5]*P1[3]);
     T TMP1 = (V3[2]*P2[0] - V3[3]*P2[1] - V3[4]*P2[2] - V3[5]*P2[3]);
     T TMP2 = (P1[0]*V2[2] - P1[1]*V2[3] - P1[2]*V2[4] - P1[3]*V2[5]);
@@ -641,11 +660,26 @@ __device__ void VVV1P0_1(T* V2, T* V3, const T COUP, double M1_double, double W1
     T TMP4 = (V3[2]*V2[2] - V3[3]*V2[3] - V3[4]*V2[4] - V3[5]*V2[5]);
     
     T denom = COUP/(P1[0]*P1[0] - P1[1]*P1[1] - P1[2]*P1[2] - P1[3]*P1[3] - M1 * (M1 -cI* W1));
+    denom = T(0,0);
     
     V1[2]= denom * (TMP4 * (-cI*(P2[0]) + cI*(P3[0])) + (V2[2]*(-cI*(TMP0) + cI*(TMP1)) + V3[2]*(cI*(TMP2) - cI*(TMP3))));
     V1[3]= denom * (TMP4 * (-cI*(P2[1]) + cI*(P3[1])) + (V2[3]*(-cI*(TMP0) + cI*(TMP1)) + V3[3]*(cI*(TMP2) - cI*(TMP3))));
     V1[4]= denom * (TMP4 * (-cI*(P2[2]) + cI*(P3[2])) + (V2[4]*(-cI*(TMP0) + cI*(TMP1)) + V3[4]*(cI*(TMP2) - cI*(TMP3))));
     V1[5]= denom * (TMP4 * (-cI*(P2[3]) + cI*(P3[3])) + (V2[5]*(-cI*(TMP0) + cI*(TMP1)) + V3[5]*(cI*(TMP2) - cI*(TMP3))));
+    /*
+    T TMP0 = (V3[2]*P10   - V3[3]*P11   - V3[4]*P12   - V3[5]*P13);
+    T TMP1 = (V3[2]*P20   - V3[3]*P21   - V3[4]*P22   - V3[5]*P23);
+    T TMP2 = (P10*V2[2]   - P11*V2[3]   - P12*V2[4]   - P13*V2[5]);
+    T TMP3 = (V2[2]*P30   - V2[3]*P31   - V2[4]*P32   - V2[5]*P33);
+    T TMP4 = (V3[2]*V2[2] - V3[3]*V2[3] - V3[4]*V2[4] - V3[5]*V2[5]);
+    
+    T denom = COUP/(P10*P10 - P11*P11 - P12*P12 - P13*P13 - M1 * (M1 -cI* W1));
+    
+    V1[2]= V3[2] ;//+ V3[2]*(cI*(TMP2) - cI*(TMP3)));
+    //V1[2]= denom * (TMP4 * (-cI*(P20) + cI*(P30)) + (V2[2]*(-cI*(TMP0) + cI*(TMP1)) + V3[2]*(cI*(TMP2) - cI*(TMP3))));
+    V1[3]= denom * (TMP4 * (-cI*(P21) + cI*(P31)) + (V2[3]*(-cI*(TMP0) + cI*(TMP1)) + V3[3]*(cI*(TMP2) - cI*(TMP3))));
+    V1[4]= denom * (TMP4 * (-cI*(P22) + cI*(P32)) + (V2[4]*(-cI*(TMP0) + cI*(TMP1)) + V3[4]*(cI*(TMP2) - cI*(TMP3))));
+    V1[5]= denom * (TMP4 * (-cI*(P23) + cI*(P33)) + (V2[5]*(-cI*(TMP0) + cI*(TMP1)) + V3[5]*(cI*(TMP2) - cI*(TMP3))));*/
     /*
     T TMP0 = (cmult(V3[2], P1[0]) - cmult(V3[3], P1[1]) - cmult(V3[4], P1[2]) - cmult(V3[5], P1[3]));
     T TMP1 = (cmult(V3[2], P2[0]) - cmult(V3[3], P2[1]) - cmult(V3[4], P2[2]) - cmult(V3[5], P2[3]));
@@ -656,20 +690,18 @@ __device__ void VVV1P0_1(T* V2, T* V3, const T COUP, double M1_double, double W1
     T TMP42 = -cI * P2[0] + cI * P3[0];
     T TMP4221 = V2[2]*(-cI * TMP0 + cI * TMP1);
     T TMP4222 = V3[2]*(cI * TMP2 - cI * TMP3);
-    T TMP422 = T(TMP4221.real() + TMP4221.real(), TMP4221.imag() + TMP4222.imag());
-    
+    //printf("%f %f\n", TMP4221.real(), TMP4222.real());
+    //printf("%f %f %f\n", TMP4221.real(), TMP4222.real(), TMP4221.real() + TMP4222.real());
     T denom = COUP/(P1[0]*P1[0] - P1[1]*P1[1] - P1[2]*P1[2] - P1[3]*P1[3] - M1 * (M1 -cI* W1));
-    if (TMP422 == T(0,0))
-    V1[2]= T(1,0);//TMP4222;
-    else
-    V1[2]= T(0,0);
+    const T TMP422 = T(TMP4221.real() + TMP4222.real(), TMP4221.imag() + TMP4222.imag());
+    V1[2]= TMP422;
     V1[3]= denom * (TMP4 * (cmult(-cI, P2[1]) + cmult(cI, P3[1])) + (V2[3]*(cmult(-cI, TMP0) + cmult(cI, TMP1)) + V3[3]*(cmult(cI, TMP2) - cmult(cI, TMP3))));
     V1[4]= denom * (TMP4 * (cmult(-cI, P2[2]) + cmult(cI, P3[2])) + (V2[4]*(cmult(-cI, TMP0) + cmult(cI, TMP1)) + V3[4]*(cmult(cI, TMP2) - cmult(cI, TMP3))));
     V1[5]= denom * (TMP4 * (cmult(-cI, P2[3]) + cmult(cI, P3[3])) + (V2[5]*(cmult(-cI, TMP0) + cmult(cI, TMP1)) + V3[5]*(cmult(cI, TMP2) - cmult(cI, TMP3))));*/
 }
 
 template <typename T>
-__device__ void FFV1_0(T* F1, T* F2, T* V3, const T COUP, T* amp) {
+__device__ void FFV1_0(const T* F1, const T* F2, const T* V3, const T COUP, T* amp) {
     T cI(0, 1);
     
     T v325p = V3[2]+V3[5];
@@ -691,7 +723,7 @@ __device__ void FFV1_0(T* F1, T* F2, T* V3, const T COUP, T* amp) {
 }
 
 template <typename T>
-__device__ void FFV1_1(T* F2, T* V3, const T COUP, double M1_double, double W1_double, T* F1) {
+__device__ void FFV1_1(const T* F2, const T* V3, const T COUP, double M1_double, double W1_double, T* F1) {
     T cI(0, 1);
     T M1 = M1_double;
     T W1 = W1_double;
@@ -717,7 +749,7 @@ __device__ void FFV1_1(T* F2, T* V3, const T COUP, double M1_double, double W1_d
 }
 
 template <typename T>
-__device__ void FFV1_2(T* F1, T* V3, const T COUP, double M2_double, double W2_double, T* F2) {
+__device__ void FFV1_2(const T* F1, const T* V3, const T COUP, double M2_double, double W2_double, T* F2) {
     T cI(0, 1);
     T M2 = M2_double;
     T W2 = W2_double;
