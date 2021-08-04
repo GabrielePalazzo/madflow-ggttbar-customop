@@ -13,7 +13,7 @@ using GPUDevice = Eigen::GpuDevice;
 //#define COMPLEX_TYPE thrust::complex<double>
 #define COMPLEX_CONJUGATE conj//thrust::conj
 
-#define DEFAULT_BLOCK_SIZE 256//1024
+#define DEFAULT_BLOCK_SIZE 32//256//1024
 
 __device__ double SQH = 0.70710676908493; // tf.math.sqrt(0.5) == 0.70710676908493;
 __device__ COMPLEX_TYPE CZERO;// = COMPLEX_TYPE(0.0, 0.0);
@@ -85,27 +85,21 @@ __device__ double signvecc(double x, double y);
 __device__ COMPLEX_TYPE csum(COMPLEX_TYPE a, COMPLEX_TYPE b) {
     return COMPLEX_TYPE(a.real() + b.real(), a.imag() + b.imag());
 }
-
 __device__ COMPLEX_TYPE cdiff(COMPLEX_TYPE a, COMPLEX_TYPE b) {
     return COMPLEX_TYPE(a.real() - b.real(), a.imag() - b.imag());
 }
-
 __device__ COMPLEX_TYPE cmult(COMPLEX_TYPE a, COMPLEX_TYPE b) {
     return COMPLEX_TYPE(a.real() * b.real() - a.imag() * b.imag(), a.imag() * b.real() + a.real() * b.imag());
 }
-
 __device__ COMPLEX_TYPE cmult(COMPLEX_TYPE a, double b) {
     return COMPLEX_TYPE(a.real() * b, a.imag() * b);
 }
-
 __device__ COMPLEX_TYPE cmult(double a, COMPLEX_TYPE b) {
     return cmult(b, a);
 }
-
 __device__ void assign(COMPLEX_TYPE& a, const COMPLEX_TYPE b) {
     a = b;
 }
-
 __device__ COMPLEX_TYPE cdiv(COMPLEX_TYPE a, COMPLEX_TYPE b) {
     double norm = b.real() * b.real() + b.imag() * b.imag();
     return COMPLEX_TYPE((a.real() * b.real() + a.imag() * b.imag())/norm, (a.imag() * b.real() - a.real() * b.imag())/norm);
@@ -173,11 +167,11 @@ __global__ void MatrixCudaKernel(const double* all_ps, const double* hel, const 
     ZERO = 0.;
     
     // Begin code
-    //for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < nevents; i += blockDim.x * gridDim.x) {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < nevents; i += blockDim.x * gridDim.x) {
+    //int i = blockIdx.x * blockDim.x + threadIdx.x;
     //printf("Thread id: %i\n", i);
     /*if (i == 99999) output_flat[i] = 1;
-    else */if (i < nevents) {
+    else *///if (i < nevents) {
         T w0[6], w1[6], w2[6], w3[6], w4[6];
         for (int j = 0; j < 6; j++) w4[j] = T(0,0);
         vxxxxx(all_ps+(16*i), ZERO, hel[0], -1, w0);
@@ -231,7 +225,7 @@ void MatrixFunctor<GPUDevice, T>::operator()(
     // block count and thread_per_block count.
   
     int blockSize = DEFAULT_BLOCK_SIZE;
-    int numBlocks = (nevents + blockSize - 1) / blockSize;
+    int numBlocks = (nevents + blockSize - 1) / (2 * blockSize);
     
     //std::cout << blockSize << " " << numBlocks << std::endl;
     if (nevents < blockSize) {
@@ -856,4 +850,3 @@ __device__ void FFV1_2(const T* F1, const T* V3, const T COUP, double M2_double,
 }
 
 #endif  // GOOGLE_CUDA
-
