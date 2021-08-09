@@ -223,9 +223,11 @@ void MatrixFunctor<GPUDevice, T>::operator()(
     //
     // See core/util/gpu_kernel_helper.h for example of computing
     // block count and thread_per_block count.
-  
+    
+    int eventsPerBlock = 1;
+    
     int blockSize = DEFAULT_BLOCK_SIZE;
-    int numBlocks = (nevents + blockSize - 1) / (2 * blockSize);
+    int numBlocks = (nevents + blockSize - 1) / (eventsPerBlock * blockSize);
     
     //std::cout << blockSize << " " << numBlocks << std::endl;
     if (nevents < blockSize) {
